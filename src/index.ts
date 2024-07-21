@@ -5,6 +5,11 @@ import bodyParser from "body-parser"; // JSON 및 URL-encoded 요청 본문을 �
 import cookieParser from "cookie-parser"; // 쿠키 파싱
 import compression from "compression"; // HTTP 응답을 압축
 import cors from "cors"; // CORS 활성화
+import mongoose from "mongoose"; // MongoDB와 연결
+import dotenv from "dotenv"; // 환경 변수 로딩
+
+// 환경 변수를 로드합니다. .env 파일에서 설정을 가져옵니다.
+dotenv.config();
 
 // Express 애플리케이션을 생성합니다.
 const app = express();
@@ -33,3 +38,24 @@ const server = http.createServer(app);
 server.listen(8080, () => {
   console.log("Server running on http://localhost:8080/");
 });
+
+// mongoose의 Promise를 Node.js의 Promise로 설정합니다. 비동기 처리 방식 유지
+mongoose.Promise = Promise; // 최신 버전의 mongoose에서는 생략 가능
+
+// 환경 변수에서 MongoDB 연결 문자열을 가져옵니다.
+const MONGO_URL = process.env.MONGO_URL;
+
+// MongoDB에 연결합니다.
+// 연결 성공 시 콘솔에 메시지를 출력하고,
+// 연결 오류 발생 시 에러 메시지를 출력합니다.
+mongoose
+  .connect(MONGO_URL)
+  .then(() => {
+    console.log("MongoDB에 성공적으로 연결되었습니다.");
+  })
+  .catch((error) => {
+    console.error("MongoDB 연결 중 오류 발생:", error);
+  });
+
+// MongoDB 연결 에러를 처리합니다.
+mongoose.connection.on("error", (error: Error) => console.log(error));
