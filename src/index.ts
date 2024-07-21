@@ -8,6 +8,8 @@ import cors from "cors"; // CORS 활성화
 import mongoose from "mongoose"; // MongoDB와 연결
 import dotenv from "dotenv"; // 환경 변수 로딩
 
+import router from "./routers"; // 라우터 모듈을 가져옴
+
 // 환경 변수를 로드합니다. .env 파일에서 설정을 가져옵니다.
 dotenv.config();
 
@@ -59,3 +61,6 @@ mongoose
 
 // MongoDB 연결 에러를 처리합니다.
 mongoose.connection.on("error", (error: Error) => console.log(error));
+
+// 애플리케이션의 루트 경로에 라우터를 연결합니다.
+app.use("/", router());
