@@ -1,7 +1,59 @@
 import { createUser, getUserByEmail, getUserByNickname } from "../apis/users";
 import express from "express";
 import bcryptjs from "bcryptjs";
+import jwt from "jsonwebtoken";
 import { makeAccessToken, makeRefreshToken } from "../utils/auth";
+
+// 토큰 재발급 함수
+export const reissue = async (req: express.Request, res: express.Response) => {
+  // 요청 헤더에서 access와 refresh 토큰 추출
+  const access = req.header("access");
+  const refresh = req.header("refresh");
+
+  // access 또는 refresh 토큰이 없는 경우, 401 상태 코드와 메시지 반환
+  if (!access || !refresh) {
+    return res.status(401).json({ code: 2, msg: "토큰 만료 재로그인" });
+  }
+
+  // access 토큰 검증
+  try {
+    const decode = jwt.verify(access, process.env.JWT_SECRET) as jwt.JwtPayload;
+    // access 토큰이 유효한 경우, 현재의 access와 refresh 토큰 반환
+    return res.status(200).json({ access, refresh });
+  } catch (error) {
+    console.log(error);
+    // access 토큰이 만료된 경우, refresh 토큰 검증
+    try {
+      // refresh 토큰 검증
+      const decode = jwt.verify(
+        refresh,
+        process.env.JWT_SECRET
+      ) as jwt.JwtPayload;
+      const { email } = decode;
+
+      // 이메일로 사용자 정보 조회
+      const validUser = await getUserByEmail(email);
+
+      if (!validUser) {
+        // 사용자를 찾지 못한 경우, 404 상태 코드와 메시지 반환
+        return res
+          .status(404)
+          .json({ code: 4, msg: "유효한 유저를 찾을 수 없습니다." });
+      }
+
+      // 새로운 access 토큰 생성
+      const accessExpiryDate = "1h";
+      const newAccessToken = makeAccessToken(validUser, accessExpiryDate);
+
+      // 새로운 access 토큰과 기존 refresh 토큰 반환
+      return res.status(200).json({ access: newAccessToken, refresh });
+    } catch (error) {
+      console.log(error);
+      // refresh 토큰이 유효하지 않거나 검증에 실패한 경우, 401 상태 코드와 메시지 반환
+      return res.status(401).json({ code: 2, msg: "토큰 만료 재로그인" });
+    }
+  }
+};
 
 // 로그인
 export const login = async (req: express.Request, res: express.Response) => {
