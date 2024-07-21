@@ -5,13 +5,16 @@ import { makeAccessToken, makeRefreshToken } from "../utils/auth";
 
 // 로그인
 export const login = async (req: express.Request, res: express.Response) => {
+  // 요청 바디에서 이메일과 비밀번호 추출
   const { email, password } = req.body;
 
   try {
-    // 이메일 검사
+    // 이메일로 사용자 정보 조회
     const validUser = await getUserByEmail(email);
 
+    // 유효한 사용자인지 확인
     if (!validUser) {
+      // 유저를 찾지 못한 경우, 404 상태 코드와 에러 메시지 반환
       return res
         .status(404)
         .json({ code: 1, msg: "이메일을 사용하는 유저를 찾을 수 없음" });
@@ -21,22 +24,28 @@ export const login = async (req: express.Request, res: express.Response) => {
 
     // 비밀번호 검사
     const validPassword = bcryptjs.compareSync(password, validUser.password);
+
     if (!validPassword) {
+      // 비밀번호가 일치하지 않는 경우, 401 상태 코드와 에러 메시지 반환
       return res.status(401).json({ code: 2, msg: "잘못된 비밀번호" });
     } else {
       console.log("비밀번호 일치 확인");
     }
 
     // access token 생성
-    const accessExpiryDate = "1h";
+    const accessExpiryDate = "1h"; // access token 유효 기간 설정
+    // access token 생성 함수 호출
     const accessToken = makeAccessToken(validUser, accessExpiryDate);
 
     // refresh token 생성
-    const refreshExpiryDate = "24h";
+    const refreshExpiryDate = "24h"; // refresh token 유효 기간 설정
+    // access token 생성 함수 호출
     const refreshToken = makeRefreshToken(validUser, refreshExpiryDate);
 
+    // 생성된 토큰들을 응답으로 반환
     return res.status(200).json({ access: accessToken, refresh: refreshToken });
   } catch (error) {
+    // 에러 발생 시, 콘솔에 에러 로그 출력 후 500 상태 코드와 에러 메시지 반환
     console.log(error);
     return res.status(500).json({ code: 1, msg: "Internal Error" });
   }
