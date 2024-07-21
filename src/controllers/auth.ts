@@ -1,6 +1,46 @@
 import { createUser, getUserByEmail, getUserByNickname } from "../apis/users";
 import express from "express";
 import bcryptjs from "bcryptjs";
+import { makeAccessToken, makeRefreshToken } from "../utils/auth";
+
+// 로그인
+export const login = async (req: express.Request, res: express.Response) => {
+  const { email, password } = req.body;
+
+  try {
+    // 이메일 검사
+    const validUser = await getUserByEmail(email);
+
+    if (!validUser) {
+      return res
+        .status(404)
+        .json({ code: 1, msg: "이메일을 사용하는 유저를 찾을 수 없음" });
+    } else {
+      console.log("해당 이메일을 사용하는 유저를 찾음");
+    }
+
+    // 비밀번호 검사
+    const validPassword = bcryptjs.compareSync(password, validUser.password);
+    if (!validPassword) {
+      return res.status(401).json({ code: 2, msg: "잘못된 비밀번호" });
+    } else {
+      console.log("비밀번호 일치 확인");
+    }
+
+    // access token 생성
+    const accessExpiryDate = "1h";
+    const accessToken = makeAccessToken(validUser, accessExpiryDate);
+
+    // refresh token 생성
+    const refreshExpiryDate = "24h";
+    const refreshToken = makeRefreshToken(validUser, refreshExpiryDate);
+
+    return res.status(200).json({ access: accessToken, refresh: refreshToken });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ code: 1, msg: "Internal Error" });
+  }
+};
 
 // 회원 가입
 export const join = async (req: express.Request, res: express.Response) => {

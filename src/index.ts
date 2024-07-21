@@ -16,10 +16,20 @@ dotenv.config();
 // Express 애플리케이션을 생성합니다.
 const app = express();
 
+// 연결할 ip 주소
+const ip = "172.16.1.82";
+
 // CORS 설정을 추가합니다.
 // credentials 옵션을 true로 설정하여 자격 증명을 포함한 요청을 허용합니다.
 app.use(
   cors({
+    origin: [
+      `http://${ip}:3000`,
+      `http://${ip}:3001`,
+      `http://localhost:3000`,
+      `http://localhost:3001`,
+    ],
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     credentials: true,
   })
 );
@@ -31,7 +41,13 @@ app.use(compression());
 app.use(cookieParser());
 
 // body-parser 미들웨어를 사용하여 JSON 형식의 요청 본문을 파싱합니다.
-app.use(bodyParser.json());
+// app.use(bodyParser.json());
+// express 4.0 이상에서는 body-parser를 설치할 필요가 없다고 함
+app.use(express.json());
+
+// URL-encoded 형식의 요청 본문을 파싱합니다.(formData 받기)
+// extended 옵션을 false로 설정하여 querystring 모듈을 사용합니다.
+app.use(express.urlencoded({ extended: false }));
 
 // HTTP 서버를 생성합니다.
 const server = http.createServer(app);
