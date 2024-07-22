@@ -19,9 +19,11 @@ export const fetchUserData = async (
       return res.status(401).json({ code: 1, msg: "사용자가 없음" });
     }
 
+    const { password, ...rest } = user.toObject();
+
     // 보안을 위해서 password는 빈문자열을 보냄
     const modifiedUser = {
-      ...user,
+      ...rest,
       password: "",
     };
 
