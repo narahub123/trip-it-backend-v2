@@ -45,3 +45,22 @@ export const getUserByNickname = (nickname: string) => {
     throw new Error("닉네임으로 회원 조회 실패");
   }
 };
+
+// 비밀번호 업데이트
+export const patchPassword = (email: string, password: string) => {
+  try {
+    // 사용자 이메일로 찾아서 비밀번호를 업데이트
+    // email: 업데이트할 사용자의 이메일
+    // password: 새로운 비밀번호 (해싱된 상태여야 함)
+    // { new: true }: 업데이트된 문서를 반환
+    return User.findOneAndUpdate(
+      { email }, // 조건: 주어진 이메일로 사용자 찾기
+      { password }, // 업데이트할 내용: 새로운 비밀번호
+      { new: true } // 업데이트 후 반환할 문서의 옵션 (업데이트된 문서 반환)
+    );
+  } catch (error) {
+    // 비밀번호 업데이트 중 오류가 발생한 경우
+    console.log("비밀번호 업데이트 실패", error);
+    throw new Error("비밀번호 변경 실패"); // 오류를 발생시켜 상위 호출 스택으로 전파
+  }
+};
