@@ -18,6 +18,18 @@ export const reissue = async (req: express.Request, res: express.Response) => {
   // access 토큰 검증
   try {
     const decode = jwt.verify(access, process.env.JWT_SECRET) as jwt.JwtPayload;
+
+    // access 토큰이 검증된 경우 사용자 정보를 request header에 넣기
+    const { userId, email, role } = decode;
+
+    const user = {
+      userId,
+      email,
+      role,
+    };
+
+    req.user = user;
+
     // access 토큰이 유효한 경우, 현재의 access와 refresh 토큰 반환
     return res.status(200).json({ access, refresh });
   } catch (error) {
@@ -29,7 +41,9 @@ export const reissue = async (req: express.Request, res: express.Response) => {
         refresh,
         process.env.JWT_SECRET
       ) as jwt.JwtPayload;
-      const { email } = decode;
+      const { email, userId, role } = decode;
+
+      const user = { email, userId, role };
 
       // 이메일로 사용자 정보 조회
       const validUser = await getUserByEmail(email);
@@ -44,6 +58,9 @@ export const reissue = async (req: express.Request, res: express.Response) => {
       // 새로운 access 토큰 생성
       const accessExpiryDate = "1h";
       const newAccessToken = makeAccessToken(validUser, accessExpiryDate);
+
+      // 검증된 유저의 경우 req.user에 유저 정보 삽입
+      req.user = user;
 
       // 새로운 access 토큰과 기존 refresh 토큰 반환
       return res.status(200).json({ access: newAccessToken, refresh });
@@ -93,6 +110,16 @@ export const login = async (req: express.Request, res: express.Response) => {
     const refreshExpiryDate = "24h"; // refresh token 유효 기간 설정
     // access token 생성 함수 호출
     const refreshToken = makeRefreshToken(validUser, refreshExpiryDate);
+
+    const user = {
+      userId: validUser.userId,
+      email: validUser.email,
+      role: validUser.role,
+    };
+
+    req.user = user;
+
+    console.log("라퀘스트", req.user);
 
     // 생성된 토큰들을 응답으로 반환
     return res.status(200).json({ access: accessToken, refresh: refreshToken });

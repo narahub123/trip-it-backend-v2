@@ -5,7 +5,8 @@
     "baseUrl": "src", // 기본 경로를 src 디렉토리로 설정
     "outDir": "dist", // 컴파일된 파일이 저장될 디렉토리
     "sourceMap": true, // 소스 맵 파일 생성 (디버깅용)
-    "noImplicitAny": true // 암시적 any 타입을 사용하지 않도록 설정
+    "noImplicitAny": true, // 암시적 any 타입을 사용하지 않도록 설정
+    "typeRoots": ["src/types", "./node_modules/@types"]
   },
   "include": ["src/**/*"] // src 디렉토리 하위의 모든 파일을 포함
 }
