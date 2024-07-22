@@ -1,4 +1,4 @@
-import { getUserByEmail, patchPassword } from "../apis/users";
+import { getUserByEmail, patchPassword, patchProfile } from "../apis/users";
 import express from "express";
 import bcryptjs from "bcryptjs";
 
@@ -109,6 +109,39 @@ export const updatePassword = async (
 
     // 비밀번호 업데이트 성공 시
     return res.status(200).json({ code: "ok" });
+  } catch (error) {
+    // 서버 오류 발생 시
+    console.log(error);
+    return res.status(500).json({ code: 4, msg: "서버 오류" });
+  }
+};
+
+// 프로필 업데이트
+export const updateProfile = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  const { email } = req.user;
+  const { value } = req.body;
+
+  try {
+    // 이메일로 사용자 정보를 조회
+    const validUser = await getUserByEmail(email);
+
+    if (!validUser) {
+      // 사용자가 존재하지 않는 경우
+      return res.status(401).json({ code: 2, msg: "사용자가 없음" });
+    }
+
+    // 새로운 비밀번호로 업데이트
+    const user = await patchProfile(email, value);
+
+    if (!user) {
+      return res.status(500).json({ code: 3, msg: "업데이트 에러 발생" });
+    }
+
+    // 새로운 프로필 업데이트
+    return res.status(200).json({ code: "ok", msg: "업데이트 성공" });
   } catch (error) {
     // 서버 오류 발생 시
     console.log(error);

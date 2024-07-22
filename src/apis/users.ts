@@ -64,3 +64,21 @@ export const patchPassword = (email: string, password: string) => {
     throw new Error("비밀번호 변경 실패"); // 오류를 발생시켜 상위 호출 스택으로 전파
   }
 };
+
+// 프로필 업데이트
+export const patchProfile = (
+  email: string,
+  profile: { userpic: string; nickname: string; userIntro: string }
+) => {
+  const user = User.findOneAndUpdate(
+    { email },
+    {
+      userpic: profile.userpic,
+      nickname: profile.nickname,
+      userIntro: profile.userIntro,
+    },
+    { new: true }
+  );
+
+  return user;
+};
