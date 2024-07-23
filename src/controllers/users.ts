@@ -1,4 +1,9 @@
-import { getUserByEmail, patchPassword, patchProfile } from "../apis/users";
+import {
+  getUserByEmail,
+  getUserByNickname,
+  patchPassword,
+  patchProfile,
+} from "../apis/users";
 import express from "express";
 import bcryptjs from "bcryptjs";
 
@@ -93,7 +98,7 @@ export const updatePassword = async (
 
     if (validPassword) {
       // 현재 비밀번호와 동일한 비밀번호를 입력한 경우
-      return res.status(401).json({ code: 6, msg: "현재와 동일한 패스워드" });
+      return res.status(422).json({ code: 1, msg: "현재와 동일한 패스워드" });
     }
 
     // 새로운 비밀번호를 해싱하여 보안 강화
@@ -122,7 +127,11 @@ export const updateProfile = async (
   res: express.Response
 ) => {
   const { email } = req.user;
-  const { value } = req.body;
+  let { userpic, nickname, userIntro } = req.body;
+
+  console.log(userIntro);
+
+  console.log(userIntro.length);
 
   try {
     // 이메일로 사용자 정보를 조회
@@ -133,7 +142,22 @@ export const updateProfile = async (
       return res.status(401).json({ code: 2, msg: "사용자가 없음" });
     }
 
-    // 새로운 비밀번호로 업데이트
+    // 기존 사용자와 동일한 닉네임 존재 여부 확인 코드 추가 필요
+    if (nickname !== validUser.nickname) {
+      const existingUser = await getUserByNickname(nickname);
+
+      if (existingUser) {
+        return res.status(409).json({ code: 1, msg: "중복 닉네임" });
+      }
+    }
+
+    const value = {
+      userpic,
+      nickname,
+      userIntro,
+    };
+
+    // 새로운 프로필로 업데이트
     const user = await patchProfile(email, value);
 
     if (!user) {

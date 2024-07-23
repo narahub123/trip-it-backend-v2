@@ -75,12 +75,15 @@ const UserSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+
     // 자기 소개
     userIntro: {
       type: String,
       trim: true,
       default: "",
+      maxlength: 100, // 최대 길이 100
     },
+
     // 탈퇴일
     endDate: {
       type: Date,
