@@ -50,11 +50,24 @@ export const fetchBlocks = async (
   req: express.Request,
   res: express.Response
 ) => {
+  const { sortKey, sortValue } = req.query;
+  // 페이징
+  // pagination
+  const limit = Number(req.query.size);
+  const page = Number(req.query.page) || 1;
+  const skip = (page - 1) * limit;
   try {
     // aggregate
-    const result = await getBlocks();
+    const result = await getBlocks(
+      sortKey.toString(),
+      sortValue.toString(),
+      skip,
+      limit
+    );
 
-    return res.status(200).json(result);
+    // 배열에 담겨서 돌려주기 때문에 배열을 걷어냄
+    const blocks = result[0];
+    return res.status(200).json(blocks);
     // return block;
   } catch (error) {
     console.log(error);

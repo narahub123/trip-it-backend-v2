@@ -24,13 +24,18 @@ export const createBlock = async (
 };
 
 // 관리자 페이지 차단 목록 가져오기
-export const getBlocks = () => {
+export const getBlocks = (
+  sortKey: string,
+  sortValue: string,
+  skip: number,
+  limit: number
+) => {
   try {
     return Block.aggregate([
       // 현재 유저(차단한 유저)의 정보를 불러오기 위한 단계
       {
         $lookup: {
-          from: "users", // 참조할 컬렉션 이름 (users 컬렉션)
+          from: "users", // 참조할 컬렉션 이름 (users 컬렉션), mongoDB 컬랙션과 일치시켜야함
           localField: "userId", // Block 컬렉션의 필드 (userId)
           foreignField: "userId", // users 컬렉션의 필드 (userId)
           as: "currentUser", // 결과가 저장될 필드 이름
@@ -52,17 +57,10 @@ export const getBlocks = () => {
         $addFields: {
           // 현재 유저의 정보 추가
           userId: {
-            userId: "$currentUser.userId", // 현재 유저의 userId
-            nickname: "$currentUser.nickname", // 현재 유저의 닉네임
+            userId: { $arrayElemAt: ["$currentUser.userId", 0] }, // 현재 유저의 userId (배열의 첫 번째 요소)
+            nickname: { $arrayElemAt: ["$currentUser.nickname", 0] }, // 현재 유저의 닉네임 (배열의 첫 번째 요소)
           },
-          nickname: "$blockedUser.nickname", // 차단 당한 유저의 닉네임
-        },
-      },
-
-      // 차단된 날짜를 기준으로 내림차순 정렬하기 위한 단계
-      {
-        $sort: {
-          blockDate: -1, // blockDate를 기준으로 내림차순 정렬 (-1)
+          nickname: { $arrayElemAt: ["$blockedUser.nickname", 0] }, // 차단 당한 유저의 닉네임 (배열의 첫 번째 요소)
         },
       },
 
@@ -76,7 +74,34 @@ export const getBlocks = () => {
           blockDate: 1, // Block 문서의 blockDate 필드
         },
       },
+      {
+        $facet: {
+          content: [
+            // sortKey와 sortValue를 사용하여 동적으로 정렬하기 위한 단계
+            {
+              $sort: {
+                [sortKey]: sortValue === "desc" ? -1 : 1, // sortValue가 "desc"이면 내림차순(-1), 아니면 오름차순(1)
+              },
+            },
+            {
+              $skip: skip,
+            },
+            {
+              $limit: limit,
+            },
+          ],
+          totalElements: [{ $count: "count" }],
+        },
+      },
+
+      // totalElements 배열을 평평하게 만들기 위한 단계
+      {
+        $addFields: {
+          totalElements: { $arrayElemAt: ["$totalElements.count", 0] }, // totalElements 배열의 첫 번째 요소를 평평하게
+        },
+      },
     ]).exec();
+    
   } catch (error) {
     console.log(error);
   }
