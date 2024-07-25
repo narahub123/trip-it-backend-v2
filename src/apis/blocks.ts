@@ -101,7 +101,6 @@ export const getBlocks = (
         },
       },
     ]).exec();
-    
   } catch (error) {
     console.log(error);
   }
@@ -139,10 +138,10 @@ export const getBlockByUserId = (userId: Types.ObjectId) => {
         $addFields: {
           // 현재 유저의 정보 추가
           userId: {
-            userId: "$currentUser.userId", // 현재 유저의 userId
-            nickname: "$currentUser.nickname", // 현재 유저의 닉네임
+            userId: { $arrayElemAt: ["$currentUser.userId", 0] }, // 현재 유저의 userId (배열의 첫 번째 요소)
+            nickname: { $arrayElemAt: ["$currentUser.nickname", 0] }, // 현재 유저의 닉네임 (배열의 첫 번째 요소)
           },
-          nickname: "$blockedUser.nickname", // 차단 당한 유저의 닉네임
+          nickname: { $arrayElemAt: ["$blockedUser.nickname", 0] }, // 차단 당한 유저의 닉네임 (배열의 첫 번째 요소)
         },
       },
 
