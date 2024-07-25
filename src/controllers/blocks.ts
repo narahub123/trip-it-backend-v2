@@ -117,3 +117,41 @@ export const unBlockUser = async (
     return res.status(500).json({ code: 2, msg: "서버 오류" });
   }
 };
+
+// 관리자가 차단 해제 하기
+export const unBlockUserByAdmin = async (
+  req: express.Request, // 요청 객체
+  res: express.Response // 응답 객체
+) => {
+  const { role } = req.user; // 사용자 역할을 추출
+  const { blockId } = req.body; // 요청 본문에서 차단 ID를 추출
+
+  // 사용자 역할이 관리자가 아닌 경우, 권한 없음 응답 반환
+  if (role !== "ROLE_ADMIN") {
+    return res.status(403).json({ code: 1, msg: "요청 권한 없음" });
+  }
+
+  // 차단 ID가 제공되지 않은 경우, 잘못된 요청 응답 반환
+  if (!blockId) {
+    return res.status(400).json({ code: 2, msg: "잘못된 요청" });
+  }
+
+  try {
+    // 차단 해제 작업 수행
+    const response = await deleteBlock(blockId);
+
+    // 차단 해제 작업의 응답이 유효하지 않은 경우, 서버 오류 응답 반환
+    if (!response._id) {
+      return res.status(409).json({ code: 4, msg: "서버 오류" });
+    }
+
+    // 차단 해제 성공 시, 성공 응답 반환
+    return res.status(200).json({ code: "ok", msg: "차단 해제 완료" });
+  } catch (error) {
+    // 오류 발생 시, 오류를 로그에 출력
+    console.log(error);
+
+    // 서버 오류 발생 시, 서버 오류 응답 반환
+    return res.status(500).json({ code: 3, msg: "서버 오류" });
+  }
+};
