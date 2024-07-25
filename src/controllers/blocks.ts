@@ -1,6 +1,7 @@
 import {
   createBlock,
   deleteBlock,
+  getBlockByBlockId,
   getBlockByUserId,
   getBlocks,
 } from "../apis/blocks";
@@ -92,6 +93,14 @@ export const unBlockUser = async (
   }
 
   try {
+    // 차단 기록을 blockId로 조회
+    const block = await getBlockByBlockId(blockId);
+
+    // 차단 기록의 userId가 현재 사용자와 일치하지 않는 경우, 요청 권한 없음 응답 반환
+    if (block.userId !== userId) {
+      return res.status(403).json({ code: 2, msg: "요청권한 없음" });
+    }
+
     // 차단 해제 작업 수행
     const response = await deleteBlock(blockId);
 

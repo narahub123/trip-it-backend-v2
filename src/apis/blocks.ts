@@ -106,6 +106,21 @@ export const getBlocks = (
   }
 };
 
+// 차단 아이디로 정보 불러오기
+export const getBlockByBlockId = (blockId: Types.ObjectId) => {
+  try {
+    // blockId가 제공되지 않은 경우, 작업을 수행하지 않고 종료
+    if (!blockId) return;
+
+    // 데이터베이스에서 blockId를 기준으로 차단 기록을 조회
+    return Block.findOne({ _id: blockId });
+  } catch (error) {
+    // 오류 발생 시, 오류를 로그에 출력
+    console.log(error);
+  }
+};
+
+
 // 사용자 차단한 목록 가져오기
 export const getBlockByUserId = (userId: Types.ObjectId) => {
   try {
