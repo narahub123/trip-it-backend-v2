@@ -167,3 +167,17 @@ export const getBlockByUserId = (userId: Types.ObjectId) => {
     console.log(error);
   }
 };
+
+// 차단 해제하기
+export const deleteBlock = (blockId: Types.ObjectId) => {
+  try {
+    // blockId가 제공되지 않은 경우, 작업을 수행하지 않고 종료
+    if (!blockId) return;
+
+    // 데이터베이스에서 해당 blockId를 가진 차단 기록을 찾아 삭제
+    return Block.findOneAndDelete({ _id: blockId });
+  } catch (error) {
+    // 오류 발생 시, 오류를 로그에 출력
+    console.log(error);
+  }
+};

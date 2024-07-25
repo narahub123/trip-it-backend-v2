@@ -1,7 +1,10 @@
-import { Block } from "../db/blocks";
-import { createBlock, getBlockByUserId, getBlocks } from "../apis/blocks";
+import {
+  createBlock,
+  deleteBlock,
+  getBlockByUserId,
+  getBlocks,
+} from "../apis/blocks";
 import express from "express";
-import mongoose from "mongoose";
 
 // 차단하기
 export const addBlock = async (req: express.Request, res: express.Response) => {
@@ -14,7 +17,7 @@ export const addBlock = async (req: express.Request, res: express.Response) => {
 
     const block = await createBlock(userId, blockedId);
 
-    if (!block) {
+    if (!block._id) {
       return res.status(400).json({ code: 2, msg: "차단 실패" });
     }
 
@@ -71,5 +74,37 @@ export const fetchBlocks = async (
     // return block;
   } catch (error) {
     console.log(error);
+  }
+};
+
+// 사용자 차단 해제 기능을 처리하는 API 핸들러 함수
+export const unBlockUser = async (
+  req: express.Request, // 요청 객체
+  res: express.Response // 응답 객체
+) => {
+  // 요청에서 현재 사용자 ID와 차단 해제할 ID를 추출
+  const { userId } = req.user;
+  const { blockId } = req.body;
+
+  // 차단 해제할 ID가 제공되지 않은 경우, 잘못된 요청 응답 반환
+  if (!blockId) {
+    return res.status(400).json({ code: 1, msg: "잘못된 요청" });
+  }
+
+  try {
+    // 차단 해제 작업 수행
+    const response = await deleteBlock(blockId);
+
+    // 차단 해제 작업의 응답을 로그에 출력
+    console.log(response);
+
+    // 차단 해제 성공 시, 성공 응답 반환
+    return res.status(200).json({ code: "ok", msg: "해제 성공" });
+  } catch (error) {
+    // 오류 발생 시, 오류를 로그에 출력
+    console.log(error);
+
+    // 서버 오류 발생 시, 서버 오류 응답 반환
+    return res.status(500).json({ code: 2, msg: "서버 오류" });
   }
 };
