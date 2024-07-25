@@ -71,26 +71,32 @@ export const getBlocks = (
           userId: 1, // 추가된 현재 유저의 정보 (userId 객체)
           blockedId: 1, // Block 문서의 blockedId 필드
           nickname: 1, // 추가된 차단 당한 유저의 닉네임
-          blockDate: 1, // Block 문서의 blockDate 필드
+          blockDate: {
+            $dateToString: {
+              format: "%Y%m%d", // 날짜 형식을 YYYYMMDD로 지정
+              date: "$blockDate", // Block 문서의 blockDate 필드 값
+            },
+          }, // Block 문서의 blockDate 필드를 YYYYMMDD 형식의 문자열로 변환
         },
       },
+
       {
         $facet: {
           content: [
             // sortKey와 sortValue를 사용하여 동적으로 정렬하기 위한 단계
             {
               $sort: {
-                [sortKey]: sortValue === "desc" ? -1 : 1, // sortValue가 "desc"이면 내림차순(-1), 아니면 오름차순(1)
+                [sortKey]: sortValue === "desc" ? -1 : 1, // sortValue가 "desc"이면 내림차순(-1), 그렇지 않으면 오름차순(1)으로 정렬
               },
             },
             {
-              $skip: skip,
+              $skip: skip, // 페이징을 위해 결과를 skip만큼 건너뜀
             },
             {
-              $limit: limit,
+              $limit: limit, // 페이징을 위해 결과를 limit만큼 제한함
             },
           ],
-          totalElements: [{ $count: "count" }],
+          totalElements: [{ $count: "count" }], // 전체 요소 수를 세어 totalElements 필드에 "count"라는 이름으로 저장
         },
       },
 
@@ -119,7 +125,6 @@ export const getBlockByBlockId = (blockId: Types.ObjectId) => {
     console.log(error);
   }
 };
-
 
 // 사용자 차단한 목록 가져오기
 export const getBlockByUserId = (userId: Types.ObjectId) => {
@@ -170,11 +175,16 @@ export const getBlockByUserId = (userId: Types.ObjectId) => {
       // 필요한 필드만 선택하여 결과를 반환하기 위한 단계
       {
         $project: {
-          blockId: 1, // Block 문서의 blockId 필드
-          userId: 1, // 추가된 현재 유저의 정보 (userId 객체)
-          blockedId: 1, // Block 문서의 blockedId 필드
-          nickname: 1, // 추가된 차단 당한 유저의 닉네임
-          blockDate: 1, // Block 문서의 blockDate 필드
+          blockId: 1, // Block 문서의 blockId 필드 포함 (1은 포함을 의미)
+          userId: 1, // 현재 유저의 정보 (userId 객체) 포함
+          blockedId: 1, // Block 문서의 blockedId 필드 포함
+          nickname: 1, // 차단 당한 유저의 닉네임 포함
+          blockDate: {
+            $dateToString: {
+              format: "%Y%m%d", // 날짜 형식을 YYYYMMDD로 지정
+              date: "$blockDate", // Block 문서의 blockDate 필드 값
+            },
+          }, // Block 문서의 blockDate 필드를 YYYYMMDD 형식의 문자열로 변환
         },
       },
     ]).exec();
