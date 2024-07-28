@@ -51,6 +51,12 @@ export const fetchBlocks = async (
   req: express.Request,
   res: express.Response
 ) => {
+  const { role } = req.user;
+
+  if (role !== "ROLE_ADMIN") {
+    return res.status(403).json({ code: 1, msg: "권한 없음" });
+  }
+
   const { sortKey, sortValue, field, search } = req.query;
   // 페이징
   const limit = Number(req.query.size);
