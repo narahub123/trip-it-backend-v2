@@ -56,7 +56,6 @@ export const fetchBlocks = async (
 ) => {
   const { sortKey, sortValue, field, search } = req.query;
   // 페이징
-  // pagination
   const limit = Number(req.query.size);
   const page = Number(req.query.page) || 1;
   const skip = (page - 1) * limit;

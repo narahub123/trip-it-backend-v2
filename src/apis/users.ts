@@ -82,3 +82,102 @@ export const patchProfile = (
 
   return user;
 };
+
+// 유저 목록을 가져오는 함수
+export const getUsers = (
+  sortKey: string, // 정렬할 필드의 키
+  sortValue: string, // 정렬 방식 ('asc' 또는 'desc')
+  skip: number, // 건너뛸 문서의 수 (페이징을 위한)
+  limit: number, // 가져올 문서의 수 (페이징을 위한)
+  field: string, // 검색할 필드
+  search: string // 검색어
+) => {
+  try {
+    return User.aggregate([
+      {
+        // 사용자 데이터의 필드 선택 및 변환
+        $project: {
+          userId: 1, // 사용자 ID
+          email: 1, // 이메일
+          username: 1, // 사용자 이름
+          nickname: 1, // 닉네임
+          birth: 1, // 생년월일
+          gender: {
+            // 성별 필드를 변환
+            $switch: {
+              branches: [
+                { case: { $eq: ["$gender", "m"] }, then: "남성" }, // 'm'을 '남성'으로 변환
+                { case: { $eq: ["$gender", "f"] }, then: "여성" }, // 'f'를 '여성'으로 변환
+              ],
+              default: "미지정", // 다른 값의 경우 '미지정'으로 처리
+            },
+          },
+          userIntro: 1, // 사용자 소개
+          role: {
+            // 역할 필드를 변환
+            $switch: {
+              branches: [
+                { case: { $eq: ["$role", "ROLE_USER"] }, then: "일반회원" }, // 'ROLE_USER'를 '일반회원'으로 변환
+                { case: { $eq: ["$role", "ROLE_ADMIN"] }, then: "관리자" }, // 'ROLE_ADMIN'을 '관리자'로 변환
+              ],
+              default: "미지정", // 다른 값의 경우 '미지정'으로 처리
+            },
+          },
+          userpic: 1, // 사용자 프로필 사진
+          reportCount: 1, // 신고 횟수
+          regdate: {
+            // 등록일자를 문자열 형식으로 변환
+            $dateToString: {
+              format: "%Y%m%d", // YYYYMMDD 형식
+              date: "$regdate",
+            },
+          },
+          endDate: {
+            // 종료일자를 문자열 형식으로 변환
+            $dateToString: {
+              format: "%Y%m%d", // YYYYMMDD 형식
+              date: "$endDate",
+            },
+          },
+        },
+      },
+      {
+        // 검색 필터 적용
+        $match: {
+          [field]: { $regex: search, $options: "i" }, // 대소문자 구분 없이 검색
+        },
+      },
+      {
+        // 페이징 및 정렬 처리
+        $facet: {
+          content: [
+            {
+              // 정렬
+              $sort: {
+                [sortKey]: sortValue === "desc" ? -1 : 1, // 정렬 방식 결정
+              },
+            },
+            {
+              // 건너뛸 문서의 수 설정
+              $skip: skip,
+            },
+            {
+              // 가져올 문서의 수 설정
+              $limit: limit,
+            },
+          ],
+          totalElements: [{ $count: "count" }], // 전체 문서 수를 카운트
+        },
+      },
+      {
+        // 전체 문서 수가 없을 경우 0으로 설정
+        $addFields: {
+          totalElements: { $ifNull: ["$totalElements.count", 0] },
+        },
+      },
+    ]).exec(); // 집계 쿼리 실행
+  } catch (error) {
+    console.error("Error fetching users:", error); // 에러 발생 시 로그 출력
+    throw error; // 클라이언트에게 에러 전달
+  }
+};
