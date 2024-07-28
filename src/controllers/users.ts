@@ -15,9 +15,9 @@ export const fetchUsers = async (
 ) => {
   const { role } = req.user;
 
-  // if (role !== "ROLE_ADMIN") {
-  //   return res.status(403).json({ code: 1, msg: "권한 없음" });
-  // }
+  if (role !== "ROLE_ADMIN") {
+    return res.status(403).json({ code: 1, msg: "권한 없음" });
+  }
 
   const { sortKey, sortValue, field, search } = req.query;
 
@@ -43,6 +43,7 @@ export const fetchUsers = async (
     return res.status(200).json(users);
   } catch (error) {
     console.log(error);
+    res.status(500).json({ code: 3, msg: "인터널 에러" });
   }
 };
 

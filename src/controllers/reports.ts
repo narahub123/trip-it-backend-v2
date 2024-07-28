@@ -1,10 +1,38 @@
 import {
   createReport,
+  deleteReport,
+  getReportByReportId,
   getReportByUserId,
   getReports,
   updateReportsByReportFalse,
 } from "../apis/reports";
 import express from "express";
+
+// 신고 취소하기
+export const cancelReport = async (
+  req: express.Request, // 요청 객체
+  res: express.Response // 응답 객체
+) => {
+  const { userId } = req.user;
+  const { reportId } = req.body;
+
+  try {
+    const response = await getReportByReportId(reportId);
+
+    if (response.userId !== userId) {
+      res.status(403).json({ code: 1, msg: "권한 없음" });
+    }
+
+    const report = await deleteReport(reportId);
+
+    if (!report) {
+      return res.status(400).json({ code: 2, msg: "에러" }); // 400 상태 코드와 에러 메시지 반환
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ code: 3, msg: "내부 에러" });
+  }
+};
 
 // 관리자 페이지 신고 처리하기 함수
 export const updateReports = async (
@@ -25,7 +53,7 @@ export const updateReports = async (
 
     if (!reports) {
       // 업데이트된 신고가 없는 경우
-      return res.status(400).json({ code: 3, msg: "에러" }); // 400 상태 코드와 에러 메시지 반환
+      return res.status(400).json({ code: 2, msg: "에러" }); // 400 상태 코드와 에러 메시지 반환
     }
 
     console.log(reports); // 업데이트된 신고를 콘솔에 로그로 남깁니다.
@@ -33,7 +61,7 @@ export const updateReports = async (
     return res.status(200).json({ code: "ok", msg: "업데이트 완료" }); // 200 상태 코드와 업데이트 완료 메시지 반환
   } catch (error) {
     console.log(error); // 에러 발생 시 콘솔에 에러를 로그로 남깁니다.
-    return res.status(500).json({ code: 2, msg: "서버 에러" }); // 500 상태 코드와 서버 에러 메시지 반환
+    return res.status(500).json({ code: 3, msg: "서버 에러" }); // 500 상태 코드와 서버 에러 메시지 반환
   }
 };
 
@@ -49,10 +77,10 @@ export const fetchReports = async (
   const page = Number(req.query.page) || 1;
   const skip = (page - 1) * limit;
 
-  //   if (role !== "ROLE_ADMIN") {
-  //     // 유저 역할이 관리자가 아닌 경우
-  //     return res.status(403).json({ code: 1, msg: "권한 없음" }); // 403 상태 코드와 권한 없음 메시지 반환
-  //   }
+  if (role !== "ROLE_ADMIN") {
+    // 유저 역할이 관리자가 아닌 경우
+    return res.status(403).json({ code: 1, msg: "권한 없음" }); // 403 상태 코드와 권한 없음 메시지 반환
+  }
 
   try {
     const result = await getReports(
@@ -64,9 +92,12 @@ export const fetchReports = async (
       search.toString()
     ); // getReports 함수 호출하여 신고 목록을 가져옵니다.
 
-    const reports = result[0];
+    if (!result) {
+      // 업데이트된 신고가 없는 경우
+      return res.status(400).json({ code: 2, msg: "에러" }); // 400 상태 코드와 에러 메시지 반환
+    }
 
-    console.log(reports);
+    const reports = result[0];
 
     return res.status(200).json(reports); // 200 상태 코드와 신고 목록을 JSON 형식으로 반환
   } catch (error) {
@@ -87,10 +118,14 @@ export const fetchReport = async (
 
     console.log(report);
 
+    if (!report) {
+      // 업데이트된 신고가 없는 경우
+      return res.status(400).json({ code: 2, msg: "에러" }); // 400 상태 코드와 에러 메시지 반환
+    }
     return res.status(200).json(report);
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ code: 1, msg: "내부 에러" });
+    return res.status(500).json({ code: 3, msg: "내부 에러" });
   }
 };
 
@@ -105,8 +140,8 @@ export const addReport = async (
   try {
     const report = await createReport(userId, postId, reportType, reportDetail);
 
-    if (!report._id) {
-      return res.status(400).json({ code: 1, msg: "차단 실패" });
+    if (!report) {
+      return res.status(400).json({ code: 2, msg: "차단 실패" });
     }
 
     console.log(report);

@@ -260,3 +260,21 @@ export const updateReportsByReportFalse = (
     console.log(error); // 에러 발생 시 콘솔에 에러를 로그로 남깁니다.
   }
 };
+
+// reportId로 차단 찾기
+export const getReportByReportId = (reportId: Types.ObjectId) => {
+  try {
+    return Report.findOne({ reportId });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// 신고 취소하기
+export const deleteReport = (reportId: Types.ObjectId) => {
+  try {
+    return Report.findOneAndDelete({ reportId });
+  } catch (error) {
+    console.log(error);
+  }
+};

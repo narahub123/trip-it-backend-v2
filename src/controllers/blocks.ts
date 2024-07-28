@@ -12,10 +12,6 @@ export const addBlock = async (req: express.Request, res: express.Response) => {
   const { userId } = req.user;
   const { blockedId } = req.body;
   try {
-    if (!blockedId) {
-      return res.status(400).json({ code: 1, msg: "차단당한 유저 없음" });
-    }
-
     const block = await createBlock(userId, blockedId);
 
     if (!block._id) {
@@ -46,6 +42,7 @@ export const fetchBlock = async (
     // return block;
   } catch (error) {
     console.log(error);
+    return res.status(500).json({ code: 3, msg: "서버 오류" });
   }
 };
 
@@ -77,6 +74,7 @@ export const fetchBlocks = async (
     // return block;
   } catch (error) {
     console.log(error);
+    return res.status(500).json({ code: 3, msg: "서버 오류" });
   }
 };
 
@@ -100,14 +98,15 @@ export const unBlockUser = async (
 
     // 차단 기록의 userId가 현재 사용자와 일치하지 않는 경우, 요청 권한 없음 응답 반환
     if (block.userId !== userId) {
-      return res.status(403).json({ code: 2, msg: "요청권한 없음" });
+      return res.status(403).json({ code: 1, msg: "요청권한 없음" });
     }
 
     // 차단 해제 작업 수행
     const response = await deleteBlock(blockId);
 
-    // 차단 해제 작업의 응답을 로그에 출력
-    console.log(response);
+    if (!response) {
+      return res.status(400).json({ code: 2, msg: "차단 안됨" });
+    }
 
     // 차단 해제 성공 시, 성공 응답 반환
     return res.status(200).json({ code: "ok", msg: "해제 성공" });
@@ -116,7 +115,7 @@ export const unBlockUser = async (
     console.log(error);
 
     // 서버 오류 발생 시, 서버 오류 응답 반환
-    return res.status(500).json({ code: 2, msg: "서버 오류" });
+    return res.status(500).json({ code: 3, msg: "서버 오류" });
   }
 };
 
@@ -135,7 +134,7 @@ export const unBlockUserByAdmin = async (
 
   // 차단 ID가 제공되지 않은 경우, 잘못된 요청 응답 반환
   if (!blockId) {
-    return res.status(400).json({ code: 2, msg: "잘못된 요청" });
+    return res.status(400).json({ code: 3, msg: "잘못된 요청" });
   }
 
   try {
@@ -144,7 +143,7 @@ export const unBlockUserByAdmin = async (
 
     // 차단 해제 작업의 응답이 유효하지 않은 경우, 서버 오류 응답 반환
     if (!response._id) {
-      return res.status(409).json({ code: 4, msg: "서버 오류" });
+      return res.status(409).json({ code: 2, msg: "서버 오류" });
     }
 
     // 차단 해제 성공 시, 성공 응답 반환
