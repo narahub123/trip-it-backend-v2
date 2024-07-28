@@ -121,8 +121,15 @@ export const getReportByUserId = (userId: Types.ObjectId) => {
   }
 };
 
-// 사용자 신고한 목록 가져오기
-export const getReports = () => {
+// 관리자 페이지 신고한 목록 가져오기
+export const getReports = (
+  sortKey: string,
+  sortValue: string,
+  skip: number,
+  limit: number,
+  field: string,
+  search: string
+) => {
   try {
     return Report.aggregate([
       {
@@ -160,13 +167,6 @@ export const getReports = () => {
         },
       },
 
-      // 신고한 날짜를 기준으로 내림차순 정렬하기 위한 단계
-      {
-        $sort: {
-          reportDate: -1, // reportDate를 기준으로 내림차순 정렬 (-1)
-        },
-      },
-
       // 필요한 필드만 선택하여 결과를 반환하기 위한 단계
       {
         $project: {
@@ -200,6 +200,40 @@ export const getReports = () => {
               date: "$reportDate", // Report 문서의 reportDate 필드 값
             },
           }, // 신고 날짜 포함 (YYYYMMDD 형식으로 변환)
+        },
+      },
+
+      {
+        $match: {
+          [field]: { $regex: search, $options: "i" },
+        },
+      },
+      {
+        $facet: {
+          content: [
+            // sortKey와 sortValue를 사용하여 동적으로 정렬하기 위한 단계
+            {
+              $sort: {
+                [sortKey]: sortValue === "desc" ? -1 : 1, // sortValue가 "desc"이면 내림차순(-1), 그렇지 않으면 오름차순(1)으로 정렬
+              },
+            },
+            {
+              $skip: skip, // 페이징을 위해 결과를 skip만큼 건너뜀
+            },
+            {
+              $limit: limit, // 페이징을 위해 결과를 limit만큼 제한함
+            },
+          ],
+          totalElements: [{ $count: "count" }], // 전체 요소 수를 세어 totalElements 필드에 "count"라는 이름으로 저장
+        },
+      },
+
+      // totalElements 배열을 평평하게 만들기 위한 단계
+      {
+        $addFields: {
+          totalElements: {
+            $ifNull: [{ $arrayElemAt: ["$totalElements.count", 0] }, 0], // // totalElements가 없는 경우 기본값 0 추가
+          },
         },
       },
     ]).exec();

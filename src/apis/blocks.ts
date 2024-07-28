@@ -28,7 +28,9 @@ export const getBlocks = (
   sortKey: string,
   sortValue: string,
   skip: number,
-  limit: number
+  limit: number,
+  field: string,
+  search: string
 ) => {
   try {
     return Block.aggregate([
@@ -79,7 +81,11 @@ export const getBlocks = (
           }, // Block 문서의 blockDate 필드를 YYYYMMDD 형식의 문자열로 변환
         },
       },
-
+      {
+        $match: {
+          [field]: { $regex: search },
+        },
+      },
       {
         $facet: {
           content: [
@@ -103,7 +109,7 @@ export const getBlocks = (
       // totalElements 배열을 평평하게 만들기 위한 단계
       {
         $addFields: {
-          totalElements: { $arrayElemAt: ["$totalElements.count", 0] }, // totalElements 배열의 첫 번째 요소를 평평하게
+          totalElements: { $ifNull: ["$totalElements.count", 0] },
         },
       },
     ]).exec();

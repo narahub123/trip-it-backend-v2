@@ -54,7 +54,7 @@ export const fetchBlocks = async (
   req: express.Request,
   res: express.Response
 ) => {
-  const { sortKey, sortValue } = req.query;
+  const { sortKey, sortValue, field, search } = req.query;
   // 페이징
   // pagination
   const limit = Number(req.query.size);
@@ -66,11 +66,14 @@ export const fetchBlocks = async (
       sortKey.toString(),
       sortValue.toString(),
       skip,
-      limit
+      limit,
+      field.toString(),
+      search.toString()
     );
 
     // 배열에 담겨서 돌려주기 때문에 배열을 걷어냄
     const blocks = result[0];
+    console.log("block", blocks);
     return res.status(200).json(blocks);
     // return block;
   } catch (error) {

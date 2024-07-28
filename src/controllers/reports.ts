@@ -43,6 +43,11 @@ export const fetchReports = async (
   res: express.Response // 응답 객체
 ) => {
   const { role } = req.user; // 요청 유저의 역할(role)을 가져옵니다.
+  const { sortKey, sortValue, field, search } = req.query;
+  // 페이징
+  const limit = Number(req.query.size);
+  const page = Number(req.query.page) || 1;
+  const skip = (page - 1) * limit;
 
   //   if (role !== "ROLE_ADMIN") {
   //     // 유저 역할이 관리자가 아닌 경우
@@ -50,7 +55,18 @@ export const fetchReports = async (
   //   }
 
   try {
-    const reports = await getReports(); // getReports 함수 호출하여 신고 목록을 가져옵니다.
+    const result = await getReports(
+      sortKey.toString(),
+      sortValue.toString(),
+      skip,
+      limit,
+      field.toString(),
+      search.toString()
+    ); // getReports 함수 호출하여 신고 목록을 가져옵니다.
+
+    const reports = result[0];
+
+    console.log(reports);
 
     return res.status(200).json(reports); // 200 상태 코드와 신고 목록을 JSON 형식으로 반환
   } catch (error) {
