@@ -2,6 +2,7 @@ import { fetchReports, updateReports } from "../controllers/reports";
 import { fetchBlocks, unBlockUserByAdmin } from "../controllers/blocks";
 import { fetchUsers } from "../controllers/users";
 import express from "express";
+import { fetchPostsAdmin } from "../controllers/posts";
 
 export default (router: express.Router) => {
   router.get("/block/all", fetchBlocks);
@@ -9,4 +10,5 @@ export default (router: express.Router) => {
   router.get("/admin/reports", fetchReports); // 신고 목록
   router.post("/admin/reports/update", updateReports); // 신고 업데이트
   router.get("/admin/users", fetchUsers); // 유저 목록
+  router.get("/admin/posts", fetchPostsAdmin); // 유저 목록
 };
