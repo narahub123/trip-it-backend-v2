@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import { User } from "../db/users";
 import { UserInputType } from "types/users";
 
@@ -179,5 +179,28 @@ export const getUsers = (
   } catch (error) {
     console.error("Error fetching users:", error); // 에러 발생 시 로그 출력
     throw error; // 클라이언트에게 에러 전달
+  }
+};
+
+// 신고 횟수 추가하기
+export const addReportCount = (
+  userId: Types.ObjectId, // 업데이트할 보고서의 ID
+  reportCount: number // 업데이트할 신고 횟수
+) => {
+  try {
+    // User 모델의 findOneAndUpdate 메서드를 사용하여 사용자 정보를 업데이트합니다.
+    return User.findOneAndUpdate(
+      { _id: userId }, // 업데이트할 문서의 조건: reportId와 일치하는 문서
+      {
+        $set: { reportCount }, // 업데이트할 필드와 값: reportFalse를 새로운 값으로 설정
+      },
+      { new: true } // 업데이트 후 새로 업데이트된 문서를 반환
+    );
+  } catch (error) {
+    // 에러 발생 시 콘솔에 에러를 로그로 남깁니다.
+    console.log(error);
+
+    // 에러를 다시 던져서 호출한 곳에서 처리할 수 있게 합니다.
+    throw error;
   }
 };
