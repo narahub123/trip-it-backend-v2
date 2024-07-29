@@ -2,6 +2,24 @@ import mongoose, { Types } from "mongoose";
 import { User } from "../db/users";
 import { UserInputType } from "types/users";
 
+// 회원 등급 변경
+export const patchUserRole = (userId: Types.ObjectId, role: string) => {
+  try {
+    return User.findOneAndUpdate({ _id: userId }, { role }, { new: true });
+  } catch (error) {
+    throw error;
+  }
+};
+
+// 회원 조회 with UserId
+export const getUserByUserId = (userId: Types.ObjectId) => {
+  try {
+    return User.findOne({ _id: userId });
+  } catch (error) {
+    throw error;
+  }
+};
+
 // 회원 가입
 export const createUser = async (userData: UserInputType) => {
   try {

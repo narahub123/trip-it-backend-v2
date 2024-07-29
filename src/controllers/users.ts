@@ -1,12 +1,15 @@
 import {
   getUserByEmail,
   getUserByNickname,
+  getUserByUserId,
   getUsers,
   patchPassword,
   patchProfile,
+  patchUserRole,
 } from "../apis/users";
 import express from "express";
 import bcryptjs from "bcryptjs";
+import mongoose from "mongoose";
 
 // 유저 목록
 export const fetchUsers = async (
@@ -210,5 +213,58 @@ export const updateProfile = async (
     // 서버 오류 발생 시
     console.log(error);
     return res.status(500).json({ code: 4, msg: "서버 오류" });
+  }
+};
+
+// 유저 정보 가져오기
+export const fetchUser = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  const { role } = req.user;
+  if (role !== "ROLE_ADMIN") {
+    return res.status(403).json({ code: 1, msg: "권한 없음" });
+  }
+  const { userId } = req.params;
+
+  const userIdObj = new mongoose.Types.ObjectId(userId);
+
+  try {
+    const user = await getUserByUserId(userIdObj);
+
+    if (!user) {
+      return res.status(401).json({ code: 2, msg: "유저 조회 실패" });
+    }
+
+    return res.status(200).json(user);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ code: 3, msg: "서버 오류" });
+  }
+};
+
+// 유저 등급 업데이트
+export const updateUserRole = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  const { role } = req.user;
+  if (role !== "ROLE_ADMIN") {
+    return res.status(403).json({ code: 1, msg: "권한 없음" });
+  }
+
+  const { userId, newRole } = req.body;
+
+  try {
+    const response = await patchUserRole(userId, newRole);
+
+    if (!response) {
+      return res.status(401).json({ code: 2, msg: "업데이트 실패" });
+    }
+
+    return res.status(200).json({ code: "ok", msg: "업데이트 성공" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ code: 3, msg: "내부에러" });
   }
 };
