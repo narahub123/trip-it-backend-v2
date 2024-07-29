@@ -1,4 +1,10 @@
-import { createUser, getUserByEmail, getUserByNickname } from "../apis/users";
+import {
+  createUser,
+  getUserByEmail,
+  getUserByNickname,
+  getUserByRefreshToken,
+  updateRefreshToken,
+} from "../apis/users";
 import express from "express";
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -18,6 +24,8 @@ export const checkToken = async (
   try {
     // 만료 여부 확인
     const decode = jwt.verify(access, process.env.JWT_SECRET) as jwt.JwtPayload;
+
+    console.log("access 확인");
 
     return res.status(200).json({ code: "ok", msg: "토큰 확인 완료" });
   } catch (error) {
@@ -40,11 +48,11 @@ export const reissue = async (req: express.Request, res: express.Response) => {
 
   // access 토큰 검증
   try {
+    // 액세스 토큰을 검증하고, 검증된 토큰에서 사용자 정보를 추출합니다.
     const decode = jwt.verify(access, process.env.JWT_SECRET) as jwt.JwtPayload;
 
-    // access 토큰이 검증된 경우 사용자 정보를 request header에 넣기
+    // 액세스 토큰이 유효한 경우, 사용자 정보를 request 객체에 추가합니다.
     const { userId, email, role } = decode;
-
     const user = {
       userId,
       email,
@@ -53,43 +61,49 @@ export const reissue = async (req: express.Request, res: express.Response) => {
 
     req.user = user;
 
-    // access 토큰이 유효한 경우, 현재의 access와 refresh 토큰 반환
+    // 액세스 토큰이 유효하므로, 현재의 access와 refresh 토큰을 반환합니다.
     return res.status(200).json({ access, refresh });
   } catch (error) {
     console.log(error);
-    // access 토큰이 만료된 경우, refresh 토큰 검증
+
+    // 액세스 토큰 검증이 실패한 경우, refresh 토큰을 검증합니다.
+
     try {
-      // refresh 토큰 검증
-      const decode = jwt.verify(
-        refresh,
-        process.env.JWT_SECRET
-      ) as jwt.JwtPayload;
+      // 요청한 리프레시 토큰을 기반으로 사용자 정보를 조회합니다.
+      const userInfo = await getUserByRefreshToken(refresh);
+      console.log(userInfo);
+
+      // 리프레시 토큰에 대한 사용자가 존재하지 않는 경우
+      if (!userInfo) {
+        return res.status(401).json({ code: 6, msg: "리프레시 토큰 검증 실패" });
+      }
+
+      // 리프레시 토큰을 검증하여 토큰의 유효성을 확인합니다.
+      const decode = jwt.verify(refresh, process.env.JWT_SECRET) as jwt.JwtPayload;
       const { email, userId, role } = decode;
 
       const user = { email, userId, role };
 
-      // 이메일로 사용자 정보 조회
+      // 이메일로 사용자 정보를 조회하여 유효성을 확인합니다.
       const validUser = await getUserByEmail(email);
 
+      // 유효한 사용자를 찾을 수 없는 경우
       if (!validUser) {
-        // 사용자를 찾지 못한 경우, 404 상태 코드와 메시지 반환
-        return res
-          .status(404)
-          .json({ code: 4, msg: "유효한 유저를 찾을 수 없습니다." });
+        return res.status(404).json({ code: 2, msg: "유효한 유저를 찾을 수 없습니다." });
       }
 
-      // 새로운 access 토큰 생성
-      const accessExpiryDate = "1h";
+      // 새로운 액세스 토큰을 생성합니다.
+      const accessExpiryDate = "1h"; // 액세스 토큰의 유효 기간 설정
       const newAccessToken = makeAccessToken(validUser, accessExpiryDate);
 
-      // 검증된 유저의 경우 req.user에 유저 정보 삽입
+      // 검증된 유저의 경우, 사용자 정보를 request 객체에 추가합니다.
       req.user = user;
 
-      // 새로운 access 토큰과 기존 refresh 토큰 반환
+      // 새로운 액세스 토큰과 기존 리프레시 토큰을 반환합니다.
       return res.status(200).json({ access: newAccessToken, refresh });
     } catch (error) {
       console.log(error);
-      // refresh 토큰이 유효하지 않거나 검증에 실패한 경우, 401 상태 코드와 메시지 반환
+      // 리프레시 토큰 검증에 실패한 경우, 401 상태 코드와 메시지를 반환합니다.
       return res.status(401).json({ code: 2, msg: "토큰 만료 재로그인" });
     }
   }
@@ -143,6 +157,9 @@ export const login = async (req: express.Request, res: express.Response) => {
     req.user = user;
 
     console.log("라퀘스트", req.user);
+
+    // refresh 토큰을 db에 저장
+    const response = await updateRefreshToken(email, refreshToken);
 
     // 생성된 토큰들을 응답으로 반환
     return res.status(200).json({ access: accessToken, refresh: refreshToken });

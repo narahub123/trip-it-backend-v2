@@ -204,3 +204,23 @@ export const addReportCount = (
     throw error;
   }
 };
+
+// refresh 토큰 업데이트
+export const updateRefreshToken = (email: string, refreshToken: string) => {
+  try {
+    return User.findOneAndUpdate({ email }, { refreshToken }, { new: true });
+  } catch (error) {
+    console.log(error);
+
+    throw error;
+  }
+};
+
+// 유저 정보를 refreshToken을 이용해서 가져오기
+export const getUserByRefreshToken = (refreshToken: string) => {
+  try {
+    return User.findOne({ refreshToken });
+  } catch (error) {
+    throw error;
+  }
+};

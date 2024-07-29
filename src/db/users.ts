@@ -91,6 +91,10 @@ const UserSchema = new mongoose.Schema(
     socialType: {
       type: String,
     },
+    // 리프레시 토큰
+    refreshToken: {
+      type: String,
+    },
   },
   {
     versionKey: false,
