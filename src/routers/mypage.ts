@@ -7,6 +7,7 @@ import {
   updateProfile,
 } from "../controllers/users";
 import { fetchPostsByUserId } from "../controllers/posts";
+import { fetchSchedules } from "../controllers/schedules";
 import express from "express";
 
 export default (router: express.Router) => {
@@ -17,4 +18,5 @@ export default (router: express.Router) => {
   router.get("/mypage/block", fetchBlock); // 차단 목록 가져오기
   router.get("/mypage/report", fetchReport); // 신고 목록 가져오기
   router.get("/mypage/postList", fetchPostsByUserId); // 모집글 목록 가져오기
+  router.get("/mypage/schedules", fetchSchedules); // 일정 목록 가져오기
 };

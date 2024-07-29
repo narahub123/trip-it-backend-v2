@@ -61,7 +61,7 @@ const UserSchema = new mongoose.Schema(
     regdate: {
       type: Date,
       default: Date.now,
-      get: (date: Date) => date.toISOString().slice(0, 10), // YYYY-MM-DD 형식
+      get: (date: Date) => date.toISOString().slice(0, 10).replace(/-/g, ""), // 저장된 날짜를 YYYYMMDD 형식으로 변환하여 반환
       set: (dateString: string) => new Date(dateString), // 문자열을 Date 객체로 변환
     },
     // 신고 개수
@@ -98,6 +98,7 @@ const UserSchema = new mongoose.Schema(
   },
   {
     versionKey: false,
+    toJSON: { getters: true }, // JSON으로 변환 시 getter를 포함하도록 설정
   }
 );
 
