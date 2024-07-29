@@ -4,6 +4,29 @@ import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { makeAccessToken, makeRefreshToken } from "../utils/auth";
 
+// 토큰 확인 함수
+export const checkToken = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  const access = req.header("access");
+
+  if (!access) {
+    return res.status(401).json({ code: 2, msg: "토큰 없음" });
+  }
+
+  try {
+    // 만료 여부 확인
+    const decode = jwt.verify(access, process.env.JWT_SECRET) as jwt.JwtPayload;
+
+    return res.status(200).json({ code: "ok", msg: "토큰 확인 완료" });
+  } catch (error) {
+    console.log("토큰 에러", error);
+
+    return res.status(401).json({ code: 2, msg: "토큰 만료 재로그인" });
+  }
+};
+
 // 토큰 재발급 함수
 export const reissue = async (req: express.Request, res: express.Response) => {
   // 요청 헤더에서 access와 refresh 토큰 추출

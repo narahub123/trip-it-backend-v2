@@ -7,6 +7,7 @@ import test from "./test";
 const router = express.Router();
 
 export default (): express.Router => {
+  
   auth(router);
   mypage(router);
   admin(router);
