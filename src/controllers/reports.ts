@@ -1,4 +1,8 @@
-import { addReportCount } from "../apis/users";
+import {
+  addReportCount,
+  getUserByUserId,
+  patchRoleAndEndDate,
+} from "../apis/users";
 import {
   createReport,
   deleteReport,
@@ -8,6 +12,8 @@ import {
   updateReportsByReportFalse,
 } from "../apis/reports";
 import express from "express";
+import { getPostByPostId } from "../apis/posts";
+import { createBlock } from "../apis/blocks";
 
 // 신고 취소하기
 export const cancelReport = async (
@@ -40,7 +46,7 @@ export const updateReports = async (
   req: express.Request, // 요청 객체
   res: express.Response // 응답 객체
 ) => {
-  // 요청 유저의 역할(role)을 가져옵니다.
+  // 요청을 보낸 유저의 역할(role)을 가져옵니다.
   const { role } = req.user;
   // 요청 바디에서 신고 ID(reportId)와 신고 상태(reportFalse) 값을 가져옵니다.
   const { reportId, reportFalse } = req.body;
@@ -59,58 +65,85 @@ export const updateReports = async (
     if (!reports) {
       // 에러 응답을 반환합니다. 상태 코드 400 (Bad Request).
       return res.status(400).json({ code: 2, msg: "에러" });
+    } else {
+      // 신고 상태가 2(신고 처리)인 경우에만 다음 작업을 수행합니다.
+      if (reportFalse === 2) {
+        // reportId를 사용하여 현재 신고 정보를 가져옵니다.
+        const report = await getReportByReportId(reportId);
+
+        // 신고 정보를 가져오는 데 실패한 경우
+        if (!report) {
+          return res.status(400).json({ code: 2, msg: "신고 조회 실패" });
+        }
+
+        // 신고가 달린 포스트의 아이디를 가져옵니다.
+        const postId = report.postId;
+
+        // 포스트 아이디를 통해서 신고 당한 유저의 정보를 가져옵니다.
+        const post = await getPostByPostId(postId);
+
+        // 포스트 정보를 가져오는 데 실패한 경우
+        if (!post) {
+          return res.status(400).json({ code: 2, msg: "모집글 조회 실패" });
+        }
+
+        // 포스트 작성자의 유저 아이디를 가져옵니다.
+        const userId = post.userId;
+
+        // 유저 아이디를 통해 신고 당한 유저의 정보를 가져옵니다.
+        const blockedUser = await getUserByUserId(userId);
+
+        // 유저 정보를 가져오는 데 실패한 경우
+        if (!blockedUser) {
+          return res.status(400).json({ code: 2, msg: "유저 조회 실패" });
+        }
+
+        // 현재 신고 개수를 가져옵니다.
+        let reportCount = blockedUser.reportCount;
+        // 신고 개수를 1 증가시킵니다.
+        reportCount = reportCount + 1;
+
+        // 증가된 신고 개수를 데이터베이스에 업데이트합니다.
+        const result = await addReportCount(userId, reportCount);
+
+        // 신고 개수 업데이트가 실패한 경우
+        if (!result) {
+          // 실패 응답을 반환합니다. 상태 코드 400 (Bad Request).
+          return res.status(400).json({ code: 4, msg: "신고 개수 추가 실패" });
+        }
+
+        // 신고 개수에 따라 유저의 역할을 변경하고 종료일자를 설정합니다.
+        const futureDate = new Date();
+        let date;
+        let role;
+        // 신고 개수가 3일 경우, 역할을 'ROLE_A'로 설정하고 종료일자를 7일 후로 설정합니다.
+        if (reportCount === 3) {
+          date = new Date(futureDate.setDate(futureDate.getDate() + 7));
+          role = "ROLE_A";
+        }
+        // 신고 개수가 6일 경우, 역할을 'ROLE_B'로 설정하고 종료일자를 30일 후로 설정합니다.
+        else if (reportCount === 6) {
+          date = new Date(futureDate.setDate(futureDate.getDate() + 30));
+          role = "ROLE_B";
+        }
+        // 신고 개수가 8일 경우, 역할을 'ROLE_C'로 설정하고 종료일자를 매우 먼 미래로 설정합니다.
+        else if (reportCount === 8) {
+          date = new Date(futureDate.setDate(futureDate.getDate() + 300000));
+          role = "ROLE_C";
+        }
+
+        // 유저의 역할과 종료일자를 업데이트합니다.
+        const response = await patchRoleAndEndDate(userId, role, date);
+        // 역할 업데이트가 실패한 경우
+        if (!response) {
+          // 실패 응답을 반환합니다. 상태 코드 400 (Bad Request).
+          return res.status(400).json({ code: 4, msg: "신고 개수 추가 실패" });
+        }
+      }
+
+      // 모든 작업이 성공적으로 완료된 경우, 상태 코드 200 (OK)과 함께 완료 메시지를 반환합니다.
+      return res.status(200).json({ code: "ok", msg: "업데이트 완료" });
     }
-    // else {
-    //   // 신고 상태가 2(신고 처리)인 경우에만 user 테이블의 신고 개수를 1 증가시킵니다.
-    //   if (reportFalse === 2) {
-    //     // reportId를 사용하여 현재 신고 정보를 가져옵니다.
-    //     const report = await getReportByReportId(reportId);
-
-    //     // 신고 정보를 가져오는 데 실패한 경우
-    //     if (!report) {
-    //       return res.status(400).json({ code: 2, msg: "신고 조회 실패" });
-    //     }
-
-    //   // 신고가 달린 포스트의 아이디를 가져옵니다.
-    //   const postId = report.postId;
-
-    //   // 포스트 아이디를 통해서 신고 당한 유저의 정보를 가져옵니다.
-    //   const post = await getPostByPostId(postId);
-
-    //   // 포스트 정보를 가져오는 데 실패한 경우
-    //   if (!post) {
-    //     return res.status(400).json({ code: 2, msg: "모집글 조회 실패" });
-    //   }
-
-    //   // 포스트 작성자의 유저 아이디를 가져옵니다.
-    //   const userId = post.userId;
-
-    //   // 유저 아이디를 통해 신고 당한 유저의 정보를 가져옵니다.
-    //   const blockedUser = await getUserByUserId(userId);
-
-    //   // 유저 정보를 가져오는 데 실패한 경우
-    //   if (!blockedUser) {
-    //     return res.status(400).json({ code: 2, msg: "유저 조회 실패" });
-    //   }
-
-    //   // 현재 신고 개수를 가져옵니다.
-    //   let reportCount = blockedUser.reportCount;
-    //   // 현재 신고 개수를 기반으로 신고 개수를 1 증가시킵니다.
-    //   reportCount = reportCount + 1;
-
-    //   // 증가된 신고 개수를 데이터베이스에 업데이트합니다.
-    //   const result = await addReportCount(userId, reportCount);
-
-    //   // 신고 개수 업데이트가 실패한 경우
-    //   if (!result) {
-    //     // 실패 응답을 반환합니다. 상태 코드 400 (Bad Request).
-    //     return res.status(400).json({ code: 4, msg: "신고 개수 추가 실패" });
-    //   }
-    // }
-
-    // 업데이트가 성공적으로 완료된 경우, 상태 코드 200 (OK)과 함께 완료 메시지를 반환합니다.
-    return res.status(200).json({ code: "ok", msg: "업데이트 완료" });
-    // }
   } catch (error) {
     // 예외 발생 시 콘솔에 에러를 로그로 남깁니다.
     console.log(error);
@@ -194,6 +227,18 @@ export const addReport = async (
   try {
     const report = await createReport(userId, postId, reportType, reportDetail);
 
+    if (!report) {
+      return res.status(400).json({ code: 2, msg: "신고 실패" });
+    }
+
+    // postId를 통해서 post 정보 가져오기
+    const post = await getPostByPostId(postId);
+
+    // post를 정보를 통해서 유저 아이디 가져오기
+    const blockedId = post.userId;
+
+    // 차단하기
+    const block = await createBlock(userId, blockedId);
     if (!report) {
       return res.status(400).json({ code: 2, msg: "차단 실패" });
     }

@@ -214,3 +214,11 @@ export const getPosts = (
     console.log(error); // 에러가 발생하면 콘솔에 에러 로그를 출력
   }
 };
+
+export const getPostByPostId = (postId: Types.ObjectId) => {
+  try {
+    return Post.findOne({ _id: postId });
+  } catch (error) {
+    throw error;
+  }
+};

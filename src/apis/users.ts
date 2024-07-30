@@ -242,3 +242,16 @@ export const getUserByRefreshToken = (refreshToken: string) => {
     throw error;
   }
 };
+
+// 유저 등급 및 endDate 업데이트
+export const patchRoleAndEndDate = (
+  userId: Types.ObjectId,
+  role: string,
+  endDate: Date
+) => {
+  try {
+    return User.findOneAndUpdate({ userId }, { role, endDate }, { new: true });
+  } catch (error) {
+    throw error;
+  }
+};
