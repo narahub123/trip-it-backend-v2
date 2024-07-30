@@ -170,11 +170,9 @@ export const updateProfile = async (
   res: express.Response
 ) => {
   const { email } = req.user;
-  let { userpic, nickname, userIntro } = req.body;
+  let { userpic, nickname, intro } = req.body;
 
-  console.log(userIntro);
-
-  console.log(userIntro.length);
+  console.log(intro.length);
 
   try {
     // 이메일로 사용자 정보를 조회
@@ -197,7 +195,7 @@ export const updateProfile = async (
     const value = {
       userpic,
       nickname,
-      userIntro,
+      intro,
     };
 
     // 새로운 프로필로 업데이트

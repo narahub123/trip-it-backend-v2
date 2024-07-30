@@ -16,6 +16,6 @@ export interface UserType extends UserInputType {
   role: string; // 사용자 역할 문자열
   reportCount: number; // 신고 횟수 숫자
   userpic: string; // 사용자 사진 URL 문자열 (비어 있을 수 있음)
-  userIntro: string; // 자기소개 문자열 (비어 있을 수 있음)
+  intro: string; // 자기소개 문자열 (비어 있을 수 있음)
   regdate: Date; // 등록 날짜
 }

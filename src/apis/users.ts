@@ -86,14 +86,14 @@ export const patchPassword = (email: string, password: string) => {
 // 프로필 업데이트
 export const patchProfile = (
   email: string,
-  profile: { userpic: string; nickname: string; userIntro: string }
+  profile: { userpic?: string; nickname?: string; intro?: string }
 ) => {
   const user = User.findOneAndUpdate(
     { email },
     {
       userpic: profile.userpic,
       nickname: profile.nickname,
-      userIntro: profile.userIntro,
+      intro: profile.intro,
     },
     { new: true }
   );
@@ -130,7 +130,7 @@ export const getUsers = (
               default: "미지정", // 다른 값의 경우 '미지정'으로 처리
             },
           },
-          userIntro: 1, // 사용자 소개
+          intro: 1, // 사용자 소개
           role: {
             // 역할 필드를 변환
             $switch: {

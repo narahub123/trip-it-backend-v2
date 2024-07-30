@@ -77,7 +77,7 @@ const UserSchema = new mongoose.Schema(
     },
 
     // 자기 소개
-    userIntro: {
+    intro: {
       type: String,
       trim: true,
       default: "",
