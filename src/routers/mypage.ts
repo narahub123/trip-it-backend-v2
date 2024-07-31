@@ -1,3 +1,4 @@
+import express from "express";
 import { fetchReport } from "../controllers/reports";
 import { fetchBlock } from "../controllers/blocks";
 import {
@@ -6,9 +7,8 @@ import {
   updatePassword,
   updateProfile,
 } from "../controllers/users";
-import { fetchPostsByUserId } from "../controllers/posts";
-import { fetchSchedules } from "../controllers/schedules";
-import express from "express";
+import { deletePostsM, fetchPostsByUserId } from "../controllers/posts";
+import { deleteSchedulesM, fetchSchedules } from "../controllers/schedules";
 
 export default (router: express.Router) => {
   router.get("/mypage/profile", fetchUserData); // 사용자 정보 얻기
@@ -19,4 +19,6 @@ export default (router: express.Router) => {
   router.get("/mypage/report", fetchReport); // 신고 목록 가져오기
   router.get("/mypage/postList", fetchPostsByUserId); // 모집글 목록 가져오기
   router.get("/mypage/schedules", fetchSchedules); // 일정 목록 가져오기
+  router.post("/mypage/postList/delete-post", deletePostsM); // 모집글 삭제(body는 배열로)
+  router.post("/mypage/schedules/delete-schedules", deleteSchedulesM); // 일정 삭제(body는 배열로)
 };

@@ -1,8 +1,11 @@
 import { fetchReports, updateReports } from "../controllers/reports";
 import { fetchBlocks, unBlockUserByAdmin } from "../controllers/blocks";
 import { fetchUser, fetchUsers, updateUserRole } from "../controllers/users";
-import { fetchPostsAdmin } from "../controllers/posts";
-import { fetchSchedulesAdmin } from "../controllers/schedules";
+import { deletePostsA, fetchPostsAdmin } from "../controllers/posts";
+import {
+  deleteSchedulesA,
+  fetchSchedulesAdmin,
+} from "../controllers/schedules";
 import express from "express";
 
 export default (router: express.Router) => {
@@ -15,4 +18,6 @@ export default (router: express.Router) => {
   router.post("/admin/users/updateRole", updateUserRole); // 등급 변경
   router.get("/admin/posts", fetchPostsAdmin); // 유저 목록
   router.get("/admin/schedules", fetchSchedulesAdmin); // 일정 목록
+  router.post("/admin/postList/delete-post", deletePostsA); // 모집글 삭제(body는 배열로)
+  router.post("/admin/schedules/delete-schedules", deleteSchedulesA); // 일정 삭제(body는 배열로)
 };

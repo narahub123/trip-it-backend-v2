@@ -222,3 +222,12 @@ export const getPostByPostId = (postId: Types.ObjectId) => {
     throw error;
   }
 };
+
+// 모집글 삭제하기
+export const deletePosts = (postIds: Types.ObjectId[]) => {
+  try {
+    return Post.deleteMany({ postId: { $in: postIds } });
+  } catch (error) {
+    throw error;
+  }
+};

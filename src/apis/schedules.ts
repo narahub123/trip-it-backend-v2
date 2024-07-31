@@ -183,3 +183,21 @@ export const getSchedules = (
     console.log(error); // 에러 발생 시 콘솔에 에러 로그 출력
   }
 };
+
+// scheduleId로 일정 찾기
+export const getScheduleByScheduleId = (scheduleId: Types.ObjectId) => {
+  try {
+    return Schedule.findOne({ scheduleId });
+  } catch (error) {
+    throw error;
+  }
+};
+
+// 일정 삭제하기
+export const deleteSchedules = (schedulesIds: Types.ObjectId[]) => {
+  try {
+    return Schedule.deleteMany({ schedulesId: { $in: schedulesIds } });
+  } catch (error) {
+    throw error;
+  }
+};

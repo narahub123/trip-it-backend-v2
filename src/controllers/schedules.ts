@@ -1,4 +1,9 @@
-import { getSchedules, getSchedulesByUserId } from "../apis/schedules";
+import {
+  deleteSchedules,
+  getScheduleByScheduleId,
+  getSchedules,
+  getSchedulesByUserId,
+} from "../apis/schedules";
 import express from "express";
 
 // 마이 페이지 목록 가져오기
@@ -74,6 +79,66 @@ export const fetchSchedulesAdmin = async (
     return res.status(200).json(posts);
   } catch (error) {
     // 서버 내부 에러 발생 시, 500 상태 코드와 함께 에러 메시지 반환
+    console.log(error);
+    return res.status(500).json({ code: 3, msg: "내부 에러" });
+  }
+};
+
+// 마이페이지 일정 삭제
+export const deleteSchedulesM = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  const { userId } = req.user;
+  const { deletes } = req.body;
+  try {
+    // 본인 글 확인
+    for (let deleted of deletes) {
+      const post = await getScheduleByScheduleId(deleted);
+
+      if (!post) {
+        return res.status(400).json({ code: 2, msg: "모집글 조회 에러" });
+      }
+
+      if (post.userId !== userId) {
+        return res.status(403).json({ code: 1, msg: "삭제 권한 없음" });
+      }
+    }
+
+    const response = await deleteSchedules(deletes);
+
+    if (!response) {
+      return res.status(400).json({ code: 4, msg: "모집글 삭제 실패" });
+    }
+
+    return res.status(200).json({ code: "ok", msg: "모집글 삭제 성공" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ code: 3, msg: "내부 에러" });
+  }
+};
+
+// 관리자 페이지 모집글 삭제
+export const deleteSchedulesA = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  const { role } = req.user;
+  const { deletes } = req.body;
+  try {
+    // 관리자 확인
+    if (role !== "ROLE_ADMIN") {
+      return res.status(403).json({ code: 1, msg: "삭제 권한 없음" });
+    }
+
+    const response = await deleteSchedules(deletes);
+
+    if (!response) {
+      return res.status(400).json({ code: 4, msg: "모집글 삭제 실패" });
+    }
+
+    return res.status(200).json({ code: "ok", msg: "모집글 삭제 성공" });
+  } catch (error) {
     console.log(error);
     return res.status(500).json({ code: 3, msg: "내부 에러" });
   }
