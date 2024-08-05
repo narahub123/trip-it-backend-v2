@@ -35,6 +35,7 @@ export const fetchPlace = async (
   res: express.Response
 ) => {
   const { contentId } = req.params;
+  console.log(contentId);
 
   try {
     const place = await getPlaceByContentId(contentId);

@@ -30,7 +30,7 @@ export const getPlaceByContentId = async (contentId: string) => {
   const apiUrl = `http://apis.data.go.kr/B551011/KorService1/detailCommon1?serviceKey=${apiKey}&MobileApp=AppTest&MobileOS=ETC&contentId=${contentId}&_type=json&defaultYN=Y&firstImageYN=Y&areacodeYN=Y&addrinfoYN=Y&mapinfoYN=Y&overviewYN=Y&pageNo=${pageNo}&numOfRows=${numOfRows}`;
 
   try {
-    const res = await axios.get(apiKey);
+    const res = await axios.get(apiUrl);
 
     return res.data.response.body.items.item;
   } catch (error) {
