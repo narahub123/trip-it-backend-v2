@@ -1,3 +1,4 @@
+import { saveSchedule } from "../controllers/schedules";
 import {
   fetchPlace,
   fetchPlacesByKeyword,
@@ -12,4 +13,5 @@ export default (router: express.Router) => {
     `/apiSearch/:metroId/:pageNo/:contentTypeId/:keyword`,
     fetchPlacesByKeyword
   );
+  router.post(`/home/saveSchedule`, saveSchedule);
 };

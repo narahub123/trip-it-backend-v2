@@ -1,5 +1,39 @@
 import mongoose, { Types } from "mongoose";
 import { Schedule } from "../db/schedules";
+import { ScheduleDetail } from "../db/scheduleDetails";
+import { ScheduleDetailInputType, ScheduleInputType } from "../types/schedules";
+
+// 일정 저장하기
+export const createSchedule = async (schedule: ScheduleInputType) => {
+  try {
+    // Schedule 모델을 사용하여 새로운 일정 객체를 생성합니다.
+    const newSchedule = new Schedule({
+      ...schedule,
+    });
+
+    // 생성된 일정 객체를 데이터베이스에 저장하고 결과를 반환합니다.
+    return await newSchedule.save();
+  } catch (error) {
+    // 저장 중 오류가 발생하면 에러 객체를 포함하여 예외를 던집니다.
+    throw { error };
+  }
+};
+
+// 일정 상세 저장하기
+export const createScheduleDetail = async (detail: ScheduleDetailInputType) => {
+  try {
+    // ScheduleDetail 모델을 사용하여 새로운 일정 상세 객체를 생성합니다.
+    const scheduleDetail = new ScheduleDetail({
+      ...detail,
+    });
+
+    // 생성된 일정 상세 객체를 데이터베이스에 저장하고 결과를 반환합니다.
+    return await scheduleDetail.save();
+  } catch (error) {
+    // 저장 중 오류가 발생하면 에러 객체를 포함하여 예외를 던집니다.
+    throw { error };
+  }
+};
 
 /**
  * 특정 사용자 ID로 스케줄을 조회하는 함수

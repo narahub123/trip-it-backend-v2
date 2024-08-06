@@ -1,10 +1,89 @@
+import mongoose from "mongoose";
 import {
+  createSchedule,
+  createScheduleDetail,
   deleteSchedules,
   getScheduleByScheduleId,
   getSchedules,
   getSchedulesByUserId,
 } from "../apis/schedules";
 import express from "express";
+
+// 일정 등록하기
+export const saveSchedule = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  // 사용자 정보에서 userId를 추출합니다.
+  const { userId } = req.user;
+  // 요청 본문에서 일정과 상세 일정 정보를 추출합니다.
+  const { scheduleDto, detailScheduleDto } = req.body;
+
+  // 사용자가 로그인되어 있지 않으면 403 응답을 반환합니다.
+  if (!userId) {
+    return res.status(403).json({ code: 1, msg: "로그인 필요" });
+  }
+
+  // 일정 정보나 상세 일정 정보가 없는 경우 401 응답을 반환합니다.
+  if (!scheduleDto || !detailScheduleDto) {
+    return res.status(401).json({ code: 2, msg: "유효성 에러" });
+  }
+
+  try {
+    // 새로운 ObjectId를 생성하여 일정 ID로 사용합니다.
+    const scheduleId = new mongoose.Types.ObjectId();
+
+    // 새로운 일정 객체를 생성합니다. scheduleId와 _id는 같은 값을 가집니다.
+    const newSchedule = {
+      scheduleId,
+      ...scheduleDto,
+      userId,
+      _id: scheduleId,
+    };
+
+    // createSchedule 함수를 호출하여 일정을 데이터베이스에 저장합니다.
+    const schedule = await createSchedule(newSchedule);
+
+    // 일정 저장이 실패한 경우 500 응답을 반환합니다.
+    if (!schedule) {
+      return res.status(500).json({ code: 2, msg: "일정 등록 실패" });
+    }
+
+    // 각 상세 일정을 데이터베이스에 저장합니다.
+    for (let i = 0; i < detailScheduleDto.length; i++) {
+      const detail = detailScheduleDto[i];
+
+      // 새로운 ObjectId를 생성하여 일정 상세 ID로 사용합니다.
+      const scheduleDetailId = new mongoose.Types.ObjectId();
+
+      // 새로운 일정 상세 객체를 생성합니다.
+      const newDetail = {
+        scheduleDetailId,
+        scheduleId,
+        ...detail,
+        _id: scheduleDetailId,
+      };
+
+      // createScheduleDetail 함수를 호출하여 상세 일정을 데이터베이스에 저장합니다.
+      const scheduleDetail = await createScheduleDetail(newDetail);
+
+      // 일정 상세 저장이 실패한 경우 500 응답을 반환합니다.
+      if (!scheduleDetail) {
+        return res.status(500).json({ code: 5, msg: "일정 상세 등록 실패" });
+      }
+    }
+
+    console.log("성공");
+
+    // 일정과 상세 일정 모두 성공적으로 저장된 경우 200 응답을 반환합니다.
+    return res.status(200).json({ code: "ok", msg: "일정 등록 성공" });
+  } catch (error) {
+    // 오류가 발생하면 콘솔에 오류를 기록하고 500 응답을 반환합니다.
+    console.log(error);
+
+    return res.status(500).json({ code: 3, msg: "내부 에러" });
+  }
+};
 
 // 마이 페이지 목록 가져오기
 export const fetchSchedules = async (

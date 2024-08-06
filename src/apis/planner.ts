@@ -27,6 +27,8 @@ export const getPlaceByContentId = async (contentId: string) => {
   const pageNo = 1;
   const numOfRows = 10;
 
+  console.log(contentId);
+
   const apiUrl = `http://apis.data.go.kr/B551011/KorService1/detailCommon1?serviceKey=${apiKey}&MobileApp=AppTest&MobileOS=ETC&contentId=${contentId}&_type=json&defaultYN=Y&firstImageYN=Y&areacodeYN=Y&addrinfoYN=Y&mapinfoYN=Y&overviewYN=Y&pageNo=${pageNo}&numOfRows=${numOfRows}`;
 
   try {
