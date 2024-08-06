@@ -45,6 +45,13 @@ export const fetchPlace = async (
     return res.status(200).json(place);
   } catch (error) {
     console.log(error);
+
+    if (error.code === 6) {
+      console.log("api 데이터 소진");
+
+      return res.status(422).json({ code: 6, msg: "데이터 소진" });
+    }
+
     return res.status(500).json({ code: 3, msg: "내부 에러" });
   }
 };

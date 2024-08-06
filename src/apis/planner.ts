@@ -36,6 +36,11 @@ export const getPlaceByContentId = async (contentId: string) => {
 
     return res.data.response.body.items.item;
   } catch (error) {
+    console.log(error.name);
+
+    if (error.name === "TypeError") {
+      throw { code: 6 };
+    }
     throw error;
   }
 };
