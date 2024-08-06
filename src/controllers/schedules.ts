@@ -4,10 +4,43 @@ import {
   createScheduleDetail,
   deleteSchedules,
   getScheduleByScheduleId,
+  getScheduleDetails,
   getSchedules,
   getSchedulesByUserId,
 } from "../apis/schedules";
 import express from "express";
+
+// 일정 상세 가져오기 마이페이지
+export const fetchScheduleDetails = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  // 사용자 정보 가져오기
+  const { userId } = req.user;
+
+  const { scheduleId } = req.params;
+
+  const scheduleid = new mongoose.Types.ObjectId(scheduleId);
+
+  try {
+    const userObjectId = new mongoose.Types.ObjectId(userId);
+
+    // scheduleId과 userId로 일정 가져오기 권한 확인
+    const schedule = await getScheduleByScheduleId(scheduleid, userObjectId);
+    if (!schedule) {
+      return res.status(500).json({ code: 4, msg: "일정 조회 실패" });
+    }
+
+    // scheduleId로 상세 일정 가져오기
+    const scheduleDetails = await getScheduleDetails(scheduleid);
+
+    if (!scheduleDetails) {
+      return res.status(500).json({ code: 2, msg: "상세 일정 조회 실패" });
+    }
+
+    return res.status(200).json(scheduleDetails);
+  } catch (error) {}
+};
 
 // 일정 등록하기
 export const saveSchedule = async (

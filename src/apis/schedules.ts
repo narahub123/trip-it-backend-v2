@@ -3,6 +3,15 @@ import { Schedule } from "../db/schedules";
 import { ScheduleDetail } from "../db/scheduleDetails";
 import { ScheduleDetailInputType, ScheduleInputType } from "../types/schedules";
 
+// scheduleId로 상세일정 가져오기
+export const getScheduleDetails = async (scheduleId: Types.ObjectId) => {
+  try {
+    return await ScheduleDetail.find({ scheduleId });
+  } catch (error) {
+    throw { error };
+  }
+};
+
 // 일정 저장하기
 export const createSchedule = async (schedule: ScheduleInputType) => {
   try {
@@ -219,9 +228,12 @@ export const getSchedules = (
 };
 
 // scheduleId로 일정 찾기
-export const getScheduleByScheduleId = (scheduleId: Types.ObjectId) => {
+export const getScheduleByScheduleId = async (
+  scheduleId: Types.ObjectId,
+  userId?: Types.ObjectId
+) => {
   try {
-    return Schedule.findOne({ scheduleId });
+    return await Schedule.findOne({ scheduleId, userId });
   } catch (error) {
     throw error;
   }
