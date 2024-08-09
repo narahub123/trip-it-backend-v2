@@ -20,7 +20,7 @@ export default (router: express.Router) => {
   router.post("/mypage/profile/passwordUpdate", updatePassword); // 비밀번호 변경
   router.patch("/mypage/profile/profileUpdate", updateProfile); // 프로필 업데이트
   router.get("/mypage/block", fetchBlock); // 차단 목록 가져오기
-  router.get("/mypage/report", fetchReport); // 신고 목록 가져오기
+  router.get("/report/user", fetchReport); // 신고 목록 가져오기
   router.get("/mypage/postList", fetchPostsByUserId); // 모집글 목록 가져오기
   router.post("/mypage/postList/delete-post", deletePostsM); // 모집글 삭제(body는 배열로)
   router.get("/mypage/schedules", fetchSchedules); // 일정 목록 가져오기

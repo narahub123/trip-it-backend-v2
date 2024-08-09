@@ -35,12 +35,13 @@ export const fetchPlace = async (
   res: express.Response
 ) => {
   const { contentId } = req.params;
-  console.log(contentId);
 
   try {
     const place = await getPlaceByContentId(contentId);
 
     if (!place) return res.status(400).json({ code: 2, msg: "장소 조회 실패" });
+
+    console.log(place);
 
     return res.status(200).json(place);
   } catch (error) {
