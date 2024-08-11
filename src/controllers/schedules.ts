@@ -2,13 +2,13 @@ import mongoose from "mongoose";
 import {
   createSchedule,
   createScheduleDetail,
+  deleteScheduleDetailsByScheduleId,
   deleteSchedules,
   getScheduleByScheduleId,
   getScheduleDetails,
   getSchedules,
   getSchedulesByUserId,
   patchSchedule,
-  patchScheduleDetails,
 } from "../apis/schedules";
 import express from "express";
 
@@ -18,12 +18,28 @@ export const updateSchedule = async (
   res: express.Response
 ) => {
   const { userId } = req.user;
-  const { scheduleDto, detailScheduleDto } = req.body;
+  const { value } = req.body;
+
+  const { scheduleDto, detailScheduleDto } = value;
+
+  console.log(detailScheduleDto);
+
+  const scheduleId = new mongoose.Types.ObjectId(scheduleDto.scheduleId);
+  const newScheduleDto = {
+    scheduleId,
+    metroId: scheduleDto.metroId,
+    startDate: scheduleDto.startDate,
+    endDate: scheduleDto.endDate,
+    scheduleTitle: scheduleDto.scheduleTitle,
+  };
 
   try {
-    const schedule = await getScheduleByScheduleId(scheduleDto.scheduleId);
+    const schedule = await getScheduleByScheduleId(
+      newScheduleDto.scheduleId,
+      userId
+    );
 
-    if (schedule.scheduleId !== userId) {
+    if (!schedule) {
       return res.status(403).json({ code: 1, msg: "권한 없음" });
     }
 
@@ -38,19 +54,31 @@ export const updateSchedule = async (
       return res.status(500).json({ code: 4, msg: "일정 수정 실패" });
     }
 
+    // 기존 상세 일정 삭제
+    const deleteScheduleDetails = await deleteScheduleDetailsByScheduleId(
+      scheduleId
+    );
+
+    // 각 상세 일정을 데이터베이스에 저장합니다.
     for (let i = 0; i < detailScheduleDto.length; i++) {
-      const updateDetail = {
-        scheduleDetailId: detailScheduleDto.scheduleDetailId,
-        scheduleId: detailScheduleDto.scheduleId,
-        contentId: detailScheduleDto.contentId,
-        scheduleOrder: detailScheduleDto.scheduleOrder,
-        startTime: detailScheduleDto.startTime,
-        endTime: detailScheduleDto.endTime,
+      const detail = detailScheduleDto[i];
+
+      // 새로운 ObjectId를 생성하여 일정 상세 ID로 사용합니다.
+      const scheduleDetailId = new mongoose.Types.ObjectId();
+
+      // 새로운 일정 상세 객체를 생성합니다.
+      const newDetail = {
+        scheduleDetailId,
+        scheduleId,
+        ...detail,
+        _id: scheduleDetailId,
       };
 
-      const scheduleDetailsUpdate = await patchScheduleDetails(updateDetail);
+      // createScheduleDetail 함수를 호출하여 상세 일정을 데이터베이스에 저장합니다.
+      const scheduleDetail = await createScheduleDetail(newDetail);
 
-      if (!scheduleDetailsUpdate) {
+      // 일정 상세 저장이 실패한 경우 500 응답을 반환합니다.
+      if (!scheduleDetail) {
         return res.status(500).json({ code: 5, msg: "일정 상세 수정 실패" });
       }
     }

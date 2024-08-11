@@ -21,27 +21,21 @@ export const patchSchedule = async (scheduleDto: ScheduleInputType) => {
   }
 };
 
-// 일정 상세 수정하기
-export const patchScheduleDetails = async (detail: ScheduleDetailInputType) => {
+// scheduleId로 상세일정 가져오기
+export const getScheduleDetails = async (scheduleId: Types.ObjectId) => {
   try {
-    return await ScheduleDetail.findOneAndUpdate(
-      {
-        scheduleDetailId: detail.scheduleDetailId,
-      },
-      {
-        $set: detail,
-      },
-      { new: true, runValidators: true } // 새로운 문서를 반환하고, 유효성 검사를 실행합니다.
-    );
+    return await ScheduleDetail.find({ scheduleId });
   } catch (error) {
     throw { error };
   }
 };
 
-// scheduleId로 상세일정 가져오기
-export const getScheduleDetails = async (scheduleId: Types.ObjectId) => {
+// scheduleId를 가진 상세일정들 삭제하기
+export const deleteScheduleDetailsByScheduleId = async (
+  scheduleId: Types.ObjectId
+) => {
   try {
-    return await ScheduleDetail.find({ scheduleId });
+    return await ScheduleDetail.deleteMany({ scheduleId });
   } catch (error) {
     throw { error };
   }
