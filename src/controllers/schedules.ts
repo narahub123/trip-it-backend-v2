@@ -7,8 +7,61 @@ import {
   getScheduleDetails,
   getSchedules,
   getSchedulesByUserId,
+  patchSchedule,
+  patchScheduleDetails,
 } from "../apis/schedules";
 import express from "express";
+
+// 일정 업데이트
+export const updateSchedule = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  const { userId } = req.user;
+  const { scheduleDto, detailScheduleDto } = req.body;
+
+  try {
+    const schedule = await getScheduleByScheduleId(scheduleDto.scheduleId);
+
+    if (schedule.scheduleId !== userId) {
+      return res.status(403).json({ code: 1, msg: "권한 없음" });
+    }
+
+    // 일정 정보나 상세 일정 정보가 없는 경우 401 응답을 반환합니다.
+    if (!scheduleDto || !detailScheduleDto) {
+      return res.status(401).json({ code: 2, msg: "유효성 에러" });
+    }
+
+    const scheduleUpdate = await patchSchedule(scheduleDto);
+
+    if (!scheduleUpdate) {
+      return res.status(500).json({ code: 4, msg: "일정 수정 실패" });
+    }
+
+    for (let i = 0; i < detailScheduleDto.length; i++) {
+      const updateDetail = {
+        scheduleDetailId: detailScheduleDto.scheduleDetailId,
+        scheduleId: detailScheduleDto.scheduleId,
+        contentId: detailScheduleDto.contentId,
+        scheduleOrder: detailScheduleDto.scheduleOrder,
+        startTime: detailScheduleDto.startTime,
+        endTime: detailScheduleDto.endTime,
+      };
+
+      const scheduleDetailsUpdate = await patchScheduleDetails(updateDetail);
+
+      if (!scheduleDetailsUpdate) {
+        return res.status(500).json({ code: 5, msg: "일정 상세 수정 실패" });
+      }
+    }
+
+    return res.status(200).json({ code: "ok", msg: "일정 수정 성공" });
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).json({ code: 3, msg: "내부 에러" });
+  }
+};
 
 // 일정 상세 가져오기 마이페이지
 export const fetchScheduleDetails = async (
@@ -39,7 +92,11 @@ export const fetchScheduleDetails = async (
     }
 
     return res.status(200).json(scheduleDetails);
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).json({ code: 3, msg: "내부 에러" });
+  }
 };
 
 // 일정 등록하기

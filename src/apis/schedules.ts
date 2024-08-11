@@ -3,6 +3,41 @@ import { Schedule } from "../db/schedules";
 import { ScheduleDetail } from "../db/scheduleDetails";
 import { ScheduleDetailInputType, ScheduleInputType } from "../types/schedules";
 
+// 일정 수정하기
+export const patchSchedule = async (scheduleDto: ScheduleInputType) => {
+  const updateField = {
+    scheduleTitle: scheduleDto.scheduleTitle,
+    startDate: scheduleDto.startDate,
+    endDate: scheduleDto.endDate,
+  };
+  try {
+    return Schedule.findOneAndUpdate(
+      { scheduleId: scheduleDto.scheduleId },
+      { $set: updateField },
+      { new: true, runValidators: true } // 새로운 문서를 반환하고, 유효성 검사를 실행합니다.
+    );
+  } catch (error) {
+    throw { error };
+  }
+};
+
+// 일정 상세 수정하기
+export const patchScheduleDetails = async (detail: ScheduleDetailInputType) => {
+  try {
+    return await ScheduleDetail.findOneAndUpdate(
+      {
+        scheduleDetailId: detail.scheduleDetailId,
+      },
+      {
+        $set: detail,
+      },
+      { new: true, runValidators: true } // 새로운 문서를 반환하고, 유효성 검사를 실행합니다.
+    );
+  } catch (error) {
+    throw { error };
+  }
+};
+
 // scheduleId로 상세일정 가져오기
 export const getScheduleDetails = async (scheduleId: Types.ObjectId) => {
   try {
