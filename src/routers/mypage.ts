@@ -27,5 +27,5 @@ export default (router: express.Router) => {
   router.get("/mypage/schedules", fetchSchedules); // 일정 목록 가져오기
   router.post("/mypage/schedules/delete-schedules", deleteSchedulesM); // 일정 삭제(body는 배열로)
   router.get("/mypage/schedules/:scheduleId", fetchScheduleDetails); // 일정 상세 가져오기
-  router.patch("/mypage/schedules/updateSchedule", updateSchedule); // 일정 수정
+  router.patch("/mypage/update-schedules", updateSchedule); // 일정 수정
 };
