@@ -63,6 +63,8 @@ export const fetchPlacesByKeyword = async (
 ) => {
   const { keyword, areaCode, contentTypeId, pageNo } = req.params;
 
+  console.log(keyword, areaCode, contentTypeId, pageNo);
+
   try {
     const places = await getPlacesByKeyword(
       keyword,
