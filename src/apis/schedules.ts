@@ -273,6 +273,8 @@ export const deleteSchedules = (schedulesIds: Types.ObjectId[]) => {
   try {
     return Schedule.deleteMany({ schedulesId: { $in: schedulesIds } });
   } catch (error) {
+    console.log(error);
+
     throw error;
   }
 };

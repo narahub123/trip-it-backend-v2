@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import {
   createSchedule,
   createScheduleDetail,
@@ -18,9 +18,9 @@ export const updateSchedule = async (
   res: express.Response
 ) => {
   const { userId } = req.user;
-  const { value } = req.body;
+  const { scheduleDto, detailScheduleDto } = req.body;
 
-  const { scheduleDto, detailScheduleDto } = value;
+  console.log(scheduleDto, detailScheduleDto);
 
   console.log(detailScheduleDto);
 
@@ -287,28 +287,32 @@ export const deleteSchedulesM = async (
   res: express.Response
 ) => {
   const { userId } = req.user;
-  const { deletes } = req.body;
+  const { scheduleIds } = req.body;
+  console.log(scheduleIds);
+  console.log(userId);
+
   try {
     // 본인 글 확인
-    for (let deleted of deletes) {
-      const post = await getScheduleByScheduleId(deleted);
+    let scheduleIdsArr: Types.ObjectId[] = [];
+    for (let deleted of scheduleIds) {
+      const scheduleId = new mongoose.Types.ObjectId(deleted);
+      const post = await getScheduleByScheduleId(scheduleId, userId);
 
       if (!post) {
-        return res.status(400).json({ code: 2, msg: "모집글 조회 에러" });
+        return res.status(400).json({ code: 2, msg: "일정 조회 에러" });
       }
-
-      if (post.userId !== userId) {
-        return res.status(403).json({ code: 1, msg: "삭제 권한 없음" });
-      }
+      scheduleIdsArr.push(scheduleId);
     }
 
-    const response = await deleteSchedules(deletes);
+    const response = await deleteSchedules(scheduleIdsArr);
+
+    console.log(response);
 
     if (!response) {
-      return res.status(400).json({ code: 4, msg: "모집글 삭제 실패" });
+      return res.status(400).json({ code: 4, msg: "일정 삭제 실패" });
     }
 
-    return res.status(200).json({ code: "ok", msg: "모집글 삭제 성공" });
+    return res.status(200).json({ code: "ok", msg: "일정 삭제 성공" });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ code: 3, msg: "내부 에러" });
