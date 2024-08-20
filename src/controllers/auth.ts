@@ -75,11 +75,16 @@ export const reissue = async (req: express.Request, res: express.Response) => {
 
       // 리프레시 토큰에 대한 사용자가 존재하지 않는 경우
       if (!userInfo) {
-        return res.status(401).json({ code: 6, msg: "리프레시 토큰 검증 실패" });
+        return res
+          .status(401)
+          .json({ code: 6, msg: "리프레시 토큰 검증 실패" });
       }
 
       // 리프레시 토큰을 검증하여 토큰의 유효성을 확인합니다.
-      const decode = jwt.verify(refresh, process.env.JWT_SECRET) as jwt.JwtPayload;
+      const decode = jwt.verify(
+        refresh,
+        process.env.JWT_SECRET
+      ) as jwt.JwtPayload;
       const { email, userId, role } = decode;
 
       const user = { email, userId, role };
@@ -89,7 +94,9 @@ export const reissue = async (req: express.Request, res: express.Response) => {
 
       // 유효한 사용자를 찾을 수 없는 경우
       if (!validUser) {
-        return res.status(404).json({ code: 2, msg: "유효한 유저를 찾을 수 없습니다." });
+        return res
+          .status(404)
+          .json({ code: 2, msg: "유효한 유저를 찾을 수 없습니다." });
       }
 
       // 새로운 액세스 토큰을 생성합니다.

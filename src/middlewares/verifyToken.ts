@@ -1,17 +1,36 @@
 import express from "express";
 import jwt from "jsonwebtoken";
-import { getUserByEmail } from "../apis/users";
-import { makeAccessToken } from "../utils/auth";
 
 export const verifyToken = async (
   req: express.Request,
   res: express.Response,
   next: express.NextFunction
 ) => {
-  const excludedPaths = ["/login", "/join"]; // 제외할 경로들
+  const excludedPaths = [
+    "/login",
+    "/join",
+    /^\/home(\/.*)?$/, // /home 경로와 하위 경로들을 포함합니다.
+  ];
 
-  if (excludedPaths.includes(req.path)) {
-    // login 또는 join 경로일 경우 미들웨어를 건너뜁니다.
+  const pathsToInclude = [
+    "/home/saveSchedule", // 제외할 경로에서 다시 포함시킬 경로
+  ];
+
+  console.log("여기", req.path);
+
+  const shouldExclude = excludedPaths.some((path) => {
+    if (path instanceof RegExp) {
+      return path.test(req.path); // 정규식으로 경로 매칭
+    }
+    return path === req.path; // 단순 문자열 비교
+  });
+
+  // 포함 경로를 다시 체크하여 제외 여부를 판단합니다.
+  const shouldInclude = pathsToInclude.includes(req.path);
+
+  if (shouldExclude && !shouldInclude) {
+    // 제외할 경로이면서, 포함 경로 목록에 없는 경우
+    console.log("여기일가?");
     return next();
   }
 

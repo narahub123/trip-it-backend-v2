@@ -18,8 +18,8 @@ dotenv.config();
 const app = express();
 
 // 연결할 ip 주소
-const ip = "192.168.23.147";
-// const ip = "172.16.1.122";
+// const ip = "192.168.23.147";
+const ip = "172.16.1.172";
 
 // CORS 설정을 추가합니다.
 // credentials 옵션을 true로 설정하여 자격 증명을 포함한 요청을 허용합니다.
