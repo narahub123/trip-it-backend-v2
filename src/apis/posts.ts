@@ -1,5 +1,7 @@
 import mongoose, { Types } from "mongoose";
 import { Post } from "../db/posts";
+import { PostType } from "../types/posts";
+import { metros } from "../data/metros";
 
 // 마이페이지에서 특정 사용자 ID에 해당하는 모집글 목록을 가져오는 함수
 export const getPostsByUserId = (userId: Types.ObjectId) => {
@@ -229,5 +231,145 @@ export const deletePosts = (postIds: Types.ObjectId[]) => {
     return Post.deleteMany({ postId: { $in: postIds } });
   } catch (error) {
     throw error;
+  }
+};
+
+// 모집글 등록
+export const createPost = (post: PostType) => {
+  try {
+    const newPost = new Post({
+      postId: post.postId,
+      userId: post.userId,
+      scheduleId: post.scheduleId,
+      postTitle: post.postTitle,
+      postContent: post.postContent,
+      postPic: post.postPic,
+      personnel: post.personnel,
+      recruitStatus: post.recruitStatus,
+      viewCount: post.viewCount,
+      exposureStatus: post.exposureStatus,
+      _id: post.postId,
+    });
+
+    return newPost.save();
+  } catch (error) {
+    throw { error };
+  }
+};
+
+// 게스트 모집글 목록
+export const getPostsByGuest = (
+  skip: number, // 페이지네이션을 위해 스킵할 문서 수
+  limit: number, // 페이지네이션을 위해 반환할 문서 수
+  sortKey?: string,
+  metroId?: string,
+  search?: string
+) => {
+  try {
+    const matchStage: any = {};
+
+    const metroName =
+      metros.find((metro) => metro.areaCode === metroId)?.name || "";
+
+    // metroId가 "0"이 아닌 경우와 search가 정의된 경우에만 matchStage에 조건 추가
+    if (metroId && metroId !== "0") {
+      matchStage[`metroName`] = { $regex: metroName, $options: "i" };
+    }
+
+    if (search) {
+      matchStage[`postTitle`] = { $regex: search, $options: "i" };
+    }
+
+    return Post.aggregate([
+      // 1. 'users' 컬렉션과 조인하여 현재 유저 정보를 가져오는 단계
+      {
+        $lookup: {
+          from: "users", // 조인할 컬렉션
+          localField: "userId", // 현재 컬렉션의 필드
+          foreignField: "userId", // 조인할 컬렉션의 필드
+          as: "currentUser", // 조인 결과를 저장할 배열 필드
+        },
+      },
+
+      // 2. 'schedules' 컬렉션과 조인하여 스케줄 정보를 가져오는 단계
+      {
+        $lookup: {
+          from: "schedules", // 조인할 컬렉션
+          localField: "scheduleId", // 현재 컬렉션의 필드
+          foreignField: "scheduleId", // 조인할 컬렉션의 필드
+          as: "userSchedule", // 조인 결과를 저장할 배열 필드
+        },
+      },
+
+      // 3. 조인 결과를 사용하여 필드를 추가하거나 수정하는 단계
+      {
+        $addFields: {
+          userId: { $arrayElemAt: ["$currentUser.userId", 0] }, // 현재 유저의 userId (배열의 첫 번째 요소)
+          nickname: { $arrayElemAt: ["$currentUser.nickname", 0] }, // 현재 유저의 닉네임 (배열의 첫 번째 요소)
+          gender: { $arrayElemAt: ["$currentUser.gender", 0] }, // 성별
+          birth: { $arrayElemAt: ["$currentUser.birth", 0] }, // 생년월일
+          userpic: { $arrayElemAt: ["$currentUser.userpic", 0] }, // 사용자 프로필 사진
+
+          scheduleId: { $arrayElemAt: ["$userSchedule.scheduleId", 0] }, // 스케줄 ID
+          startDate: { $arrayElemAt: ["$userSchedule.startDate", 0] }, // 스케줄 시작 날짜
+          endDate: { $arrayElemAt: ["$userSchedule.endDate", 0] }, // 스케줄 종료 날짜
+          metroName: { $arrayElemAt: ["$userSchedule.metroName", 0] }, // 메트로 이름
+        },
+      },
+
+      // 4. 필요한 필드만 선택하여 결과를 반환하는 단계
+      {
+        $project: {
+          postId: 1, // 포함할 필드
+          scheduleId: 1, // 포함할 필드
+          startDate: 1, // 포함할 필드
+          endDate: 1, // 포함할 필드
+          metroName: 1, // 포함할 필드
+          userId: 1, // 포함할 필드
+          nickname: 1, // 포함할 필드
+          gender: 1, // 포함할 필드
+          birth: 1, // 포함할 필드
+          userpic: 1, // 포함할 필드
+          postTitle: 1, // 포함할 필드
+          postContent: 1, // 포함할 필드
+          personnel: 1, // 포함할 필드
+          postPic: 1, // 포함할 필드
+          postDate: 1, // 포함할 필드
+          recruitStatus: 1, // true/false로 반환
+          viewCount: 1, // 포함할 필드
+          exposureStatus: 1, // true/false로 반환
+        },
+      },
+
+      // matchStage가 비어있지 않은 경우에만 $match 적용
+      ...(Object.keys(matchStage).length ? [{ $match: matchStage }] : []),
+
+      // 5. 정렬, 페이지네이션을 위한 단계
+      {
+        $sort: {
+          [sortKey]: -1, // postDate 기준 내림차순 정렬
+        },
+      },
+      {
+        $skip: skip, // 페이징을 위해 결과를 skip만큼 건너뜀
+      },
+      {
+        $limit: limit, // 페이징을 위해 결과를 limit만큼 제한함
+      },
+    ]).exec();
+  } catch (error) {
+    console.log(error); // 에러가 발생하면 콘솔에 에러 로그를 출력
+  }
+};
+
+// 상세 보기
+export const getPost = async (
+  userId: Types.ObjectId,
+  postId: Types.ObjectId
+) => {
+  try {
+    return Post.findOne({ userId, postId });
+  } catch (error) {
+    throw { error };
   }
 };

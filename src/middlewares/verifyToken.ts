@@ -10,13 +10,15 @@ export const verifyToken = async (
     "/login",
     "/join",
     /^\/home(\/.*)?$/, // /home 경로와 하위 경로들을 포함합니다.
+    "/community/communityList",
+    "/community/communityListByView",
+    "/community/communitySearch",
+    "/community/communityDetailGuest",
   ];
 
   const pathsToInclude = [
     "/home/saveSchedule", // 제외할 경로에서 다시 포함시킬 경로
   ];
-
-  console.log("여기", req.path);
 
   const shouldExclude = excludedPaths.some((path) => {
     if (path instanceof RegExp) {
@@ -30,7 +32,6 @@ export const verifyToken = async (
 
   if (shouldExclude && !shouldInclude) {
     // 제외할 경로이면서, 포함 경로 목록에 없는 경우
-    console.log("여기일가?");
     return next();
   }
 

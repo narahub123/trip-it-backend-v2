@@ -273,6 +273,7 @@ export const fetchSchedulesAdmin = async (
 
     // 조회한 일정을 클라이언트에 반환
     const posts = result[0];
+
     return res.status(200).json(posts);
   } catch (error) {
     // 서버 내부 에러 발생 시, 500 상태 코드와 함께 에러 메시지 반환

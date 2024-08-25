@@ -102,8 +102,10 @@ export const unBlockUser = async (
     // 차단 기록을 blockId로 조회
     const block = await getBlockByBlockId(blockId);
 
+    console.log(block);
+
     // 차단 기록의 userId가 현재 사용자와 일치하지 않는 경우, 요청 권한 없음 응답 반환
-    if (block.userId !== userId) {
+    if (!block) {
       return res.status(403).json({ code: 1, msg: "요청권한 없음" });
     }
 
