@@ -2,7 +2,7 @@
   "name": "trip-it-backend-v2",
   "version": "1.2.0",
   "description": "",
-  "main": "index.ts",
+  "main": "index.js",
   "scripts": {
     "start": "nodemon",
     "build": "npm install",
