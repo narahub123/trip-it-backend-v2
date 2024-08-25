@@ -31,6 +31,7 @@ app.use(
       `http://${ip}:3001`,
       `http://localhost:3000`,
       `http://localhost:3001`,
+      "https://tripitproject.netlify.app/",
     ],
     // 허용할 HTTP 메소드 설정
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
