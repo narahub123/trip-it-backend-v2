@@ -2,10 +2,9 @@
   "name": "trip-it-backend-v2",
   "version": "1.2.0",
   "description": "",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
-    "dev": "nodemon index.ts",
-    "start": "node index.ts",
+    "start": "nodemon",
     "build": "npm install",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
