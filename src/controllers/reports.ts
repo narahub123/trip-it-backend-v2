@@ -67,7 +67,7 @@ export const updateReports = async (
       return res.status(400).json({ code: 2, msg: "에러" });
     } else {
       // 신고 상태가 2(신고 처리)인 경우에만 다음 작업을 수행합니다.
-      if (reportFalse === 2) {
+      if (reportFalse === 1) {
         // reportId를 사용하여 현재 신고 정보를 가져옵니다.
         const report = await getReportByReportId(reportId);
 
@@ -239,7 +239,7 @@ export const addReport = async (
 
     // 차단하기
     const block = await createBlock(userId, blockedId);
-    if (!report) {
+    if (!block) {
       return res.status(400).json({ code: 2, msg: "차단 실패" });
     }
 

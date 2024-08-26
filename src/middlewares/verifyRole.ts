@@ -15,7 +15,8 @@ export const verifyRole = async (
     if (role === "ROLE_ADMIN" || role === "ROLE_USER") {
       next();
     } else if (role === "ROLE_A") {
-      return res.status(403).json({ code: 7, msg: "7일정지" });
+      // return res.status(403).json({ code: 7, msg: "7일정지" });
+      next();
     } else if (role === "ROLE_B") {
       return res.status(403).json({ code: 8, msg: "30일정지" });
     } else if (role === "ROLE_C") {

@@ -205,6 +205,8 @@ export const addReportCount = (
   userId: Types.ObjectId, // 업데이트할 보고서의 ID
   reportCount: number // 업데이트할 신고 횟수
 ) => {
+  console.log(reportCount);
+
   try {
     // User 모델의 findOneAndUpdate 메서드를 사용하여 사용자 정보를 업데이트합니다.
     return User.findOneAndUpdate(

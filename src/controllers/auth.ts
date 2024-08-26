@@ -169,7 +169,13 @@ export const login = async (req: express.Request, res: express.Response) => {
     const response = await updateRefreshToken(email, refreshToken);
 
     // 생성된 토큰들을 응답으로 반환
-    return res.status(200).json({ access: accessToken, refresh: refreshToken });
+    return res
+      .status(200)
+      .json({
+        access: accessToken,
+        refresh: refreshToken,
+        role: validUser.role,
+      });
   } catch (error) {
     // 에러 발생 시, 콘솔에 에러 로그 출력 후 500 상태 코드와 에러 메시지 반환
     console.log(error);

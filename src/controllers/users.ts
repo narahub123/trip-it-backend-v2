@@ -260,7 +260,9 @@ export const updateUserRole = async (
       return res.status(401).json({ code: 2, msg: "업데이트 실패" });
     }
 
-    return res.status(200).json({ code: "ok", msg: "업데이트 성공" });
+    console.log(response);
+
+    return res.status(200).json(response);
   } catch (error) {
     console.log(error);
     return res.status(500).json({ code: 3, msg: "내부에러" });

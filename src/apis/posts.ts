@@ -130,11 +130,15 @@ export const getPosts = (
           userId: {
             userId: { $arrayElemAt: ["$currentUser.userId", 0] }, // 현재 유저의 userId (배열의 첫 번째 요소)
             nickname: { $arrayElemAt: ["$currentUser.nickname", 0] }, // 현재 유저의 닉네임 (배열의 첫 번째 요소)
+            birth: { $arrayElemAt: ["$currentUser.birth", 0] }, // 현재 유저의 닉네임 (배열의 첫 번째 요소)
+            gender: { $arrayElemAt: ["$currentUser.gender", 0] }, // 현재 유저의 닉네임 (배열의 첫 번째 요소)
           },
 
           scheduleId: {
             scheduleId: { $arrayElemAt: ["$userSchedule.scheduleId", 0] }, // 스케줄 ID (배열의 첫 번째 요소)
             scheduleTitle: { $arrayElemAt: ["$userSchedule.scheduleTitle", 0] }, // 스케줄 제목 (배열의 첫 번째 요소)
+            startDate: { $arrayElemAt: ["$userSchedule.startDate", 0] }, // 스케줄 제목 (배열의 첫 번째 요소)
+            endDate: { $arrayElemAt: ["$userSchedule.endDate", 0] }, // 스케줄 제목 (배열의 첫 번째 요소)
           },
         },
       },

@@ -48,14 +48,14 @@ export const getReportByUserId = (userId: Types.ObjectId) => {
       },
 
       // 신고된 모집글의 정보를 불러오기 위한 단계
-      //   {
-      //     $lookup: {
-      //       from: "posts", // 참조할 컬렉션 이름 (posts 컬렉션)
-      //       localField: "postId", // Report 컬렉션의 필드 (postId)
-      //       foreignField: "postId", // posts 컬렉션의 필드 (postId)
-      //       as: "reportedPost", // 결과가 저장될 필드 이름
-      //     },
-      //   },
+      {
+        $lookup: {
+          from: "posts", // 참조할 컬렉션 이름 (posts 컬렉션)
+          localField: "postId", // Report 컬렉션의 필드 (postId)
+          foreignField: "postId", // posts 컬렉션의 필드 (postId)
+          as: "reportedPost", // 결과가 저장될 필드 이름
+        },
+      },
 
       // 필드를 추가하거나 수정하기 위한 단계
       {
@@ -66,10 +66,10 @@ export const getReportByUserId = (userId: Types.ObjectId) => {
             nickname: { $arrayElemAt: ["$currentUser.nickname", 0] }, // 현재 유저의 닉네임 (배열의 첫 번째 요소)
           },
           // 신고된 모집글의 정보 추가
-          //   postId: {
-          //     postId: { $arrayElemAt: ["$reportedPost.postId", 0] }, // 신고된 모집글의 postId (배열의 첫 번째 요소)
-          //     postTitle: { $arrayElemAt: ["$reportedPost.postTitle", 0] }, // 신고된 모집글의 제목 (배열의 첫 번째 요소)
-          //   },
+          postId: {
+            postId: { $arrayElemAt: ["$reportedPost.postId", 0] }, // 신고된 모집글의 postId (배열의 첫 번째 요소)
+            postTitle: { $arrayElemAt: ["$reportedPost.postTitle", 0] }, // 신고된 모집글의 제목 (배열의 첫 번째 요소)
+          },
         },
       },
 
@@ -142,14 +142,14 @@ export const getReports = (
       },
 
       // 신고된 모집글의 정보를 불러오기 위한 단계
-      //   {
-      //     $lookup: {
-      //       from: "posts", // 참조할 컬렉션 이름 (posts 컬렉션)
-      //       localField: "postId", // Report 컬렉션의 필드 (postId)
-      //       foreignField: "postId", // posts 컬렉션의 필드 (postId)
-      //       as: "reportedPost", // 결과가 저장될 필드 이름
-      //     },
-      //   },
+      {
+        $lookup: {
+          from: "posts", // 참조할 컬렉션 이름 (posts 컬렉션)
+          localField: "postId", // Report 컬렉션의 필드 (postId)
+          foreignField: "postId", // posts 컬렉션의 필드 (postId)
+          as: "reportedPost", // 결과가 저장될 필드 이름
+        },
+      },
 
       // 필드를 추가하거나 수정하기 위한 단계
       {
@@ -160,10 +160,10 @@ export const getReports = (
             nickname: { $arrayElemAt: ["$currentUser.nickname", 0] }, // 현재 유저의 닉네임 (배열의 첫 번째 요소)
           },
           // 신고된 모집글의 정보 추가
-          //   postId: {
-          //     postId: { $arrayElemAt: ["$reportedPost.postId", 0] }, // 신고된 모집글의 postId (배열의 첫 번째 요소)
-          //     postTitle: { $arrayElemAt: ["$reportedPost.postTitle", 0] }, // 신고된 모집글의 제목 (배열의 첫 번째 요소)
-          //   },
+          postId: {
+            postId: { $arrayElemAt: ["$reportedPost.postId", 0] }, // 신고된 모집글의 postId (배열의 첫 번째 요소)
+            postTitle: { $arrayElemAt: ["$reportedPost.postTitle", 0] }, // 신고된 모집글의 제목 (배열의 첫 번째 요소)
+          },
         },
       },
 
