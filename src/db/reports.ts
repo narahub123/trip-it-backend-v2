@@ -41,6 +41,11 @@ const ReportSchema = new mongoose.Schema(
       type: Number,
       default: 0, // 기본값을 0으로 설정
     },
+    reportReason: {
+      type: String,
+      enum: ["음란", "폭력", "욕설", "기타"],
+      required: true,
+    },
   },
   {
     versionKey: false, // Mongoose의 __v 필드를 제거하여 버전 관리를 비활성화

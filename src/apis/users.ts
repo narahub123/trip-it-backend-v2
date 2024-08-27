@@ -131,16 +131,7 @@ export const getUsers = (
             },
           },
           intro: 1, // 사용자 소개
-          role: {
-            // 역할 필드를 변환
-            $switch: {
-              branches: [
-                { case: { $eq: ["$role", "ROLE_USER"] }, then: "일반회원" }, // 'ROLE_USER'를 '일반회원'으로 변환
-                { case: { $eq: ["$role", "ROLE_ADMIN"] }, then: "관리자" }, // 'ROLE_ADMIN'을 '관리자'로 변환
-              ],
-              default: "미지정", // 다른 값의 경우 '미지정'으로 처리
-            },
-          },
+          role: 1,
           userpic: 1, // 사용자 프로필 사진
           reportCount: 1, // 신고 횟수
           regdate: {

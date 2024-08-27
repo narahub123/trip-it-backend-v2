@@ -12,12 +12,25 @@ export const createReport = async (
     const reportId = new mongoose.Types.ObjectId();
     const postid = new mongoose.Types.ObjectId();
 
+    let reportReason;
+
+    if (reportType === "R1") {
+      reportReason = "음란";
+    } else if (reportType === "R2") {
+      reportReason = "폭력";
+    } else if (reportType === "R3") {
+      reportReason = "욕설";
+    } else if (reportType === "R4") {
+      reportReason = "기타";
+    }
+
     const report = new Report({
       reportId,
       userId,
       postId: postid,
       reportType,
       reportDetail,
+      reportReason,
       _id: reportId,
     });
 
@@ -30,19 +43,18 @@ export const createReport = async (
   }
 };
 
-// 사용자 신고한 목록 가져오기
 export const getReportByUserId = (userId: Types.ObjectId) => {
   try {
     return Report.aggregate([
       // 특정 userId와 일치하는 문서를 찾기 위한 단계
-      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+      { $match: { userId: userId } },
 
       // 현재 유저(신고한 유저)의 정보를 불러오기 위한 단계
       {
         $lookup: {
           from: "users", // 참조할 컬렉션 이름 (users 컬렉션)
           localField: "userId", // Report 컬렉션의 필드 (userId)
-          foreignField: "userId", // users 컬렉션의 필드 (userId)
+          foreignField: "_id", // users 컬렉션의 _id 필드와 매칭
           as: "currentUser", // 결과가 저장될 필드 이름
         },
       },
@@ -52,7 +64,7 @@ export const getReportByUserId = (userId: Types.ObjectId) => {
         $lookup: {
           from: "posts", // 참조할 컬렉션 이름 (posts 컬렉션)
           localField: "postId", // Report 컬렉션의 필드 (postId)
-          foreignField: "postId", // posts 컬렉션의 필드 (postId)
+          foreignField: "_id", // posts 컬렉션의 _id 필드와 매칭
           as: "reportedPost", // 결과가 저장될 필드 이름
         },
       },
@@ -61,15 +73,9 @@ export const getReportByUserId = (userId: Types.ObjectId) => {
       {
         $addFields: {
           // 현재 유저의 정보 추가
-          userId: {
-            userId: { $arrayElemAt: ["$currentUser.userId", 0] }, // 현재 유저의 userId (배열의 첫 번째 요소)
-            nickname: { $arrayElemAt: ["$currentUser.nickname", 0] }, // 현재 유저의 닉네임 (배열의 첫 번째 요소)
-          },
+          currentUser: { $arrayElemAt: ["$currentUser", 0] },
           // 신고된 모집글의 정보 추가
-          postId: {
-            postId: { $arrayElemAt: ["$reportedPost.postId", 0] }, // 신고된 모집글의 postId (배열의 첫 번째 요소)
-            postTitle: { $arrayElemAt: ["$reportedPost.postTitle", 0] }, // 신고된 모집글의 제목 (배열의 첫 번째 요소)
-          },
+          reportedPost: { $arrayElemAt: ["$reportedPost", 0] },
         },
       },
 
@@ -84,40 +90,26 @@ export const getReportByUserId = (userId: Types.ObjectId) => {
       {
         $project: {
           reportId: 1, // 신고 아이디 포함
-          userId: 1, // 현재 유저의 정보 (userId 객체) 포함
-          postId: 1, // 신고된 모집글의 정보 (postId 객체) 포함
-          reportType: {
-            $switch: {
-              branches: [
-                { case: { $eq: ["$reportType", "R1"] }, then: "음란" },
-                { case: { $eq: ["$reportType", "R2"] }, then: "폭력" },
-                { case: { $eq: ["$reportType", "R3"] }, then: "욕설" },
-              ],
-              default: "기타",
-            },
-          }, // 신고 유형 포함
+          userId: "$currentUser._id", // 현재 유저의 ID 포함
+          nickname: "$currentUser.nickname", // 닉네임 포함
+          postId: "$reportedPost._id", // 신고된 모집글의 ID 포함
+          postTitle: "$reportedPost.postTitle", // 모집글 이름 포함
+          reportType: 1, // 신고 유형
           reportDetail: 1, // 신고 상세 포함
-          reportFalse: {
-            $switch: {
-              branches: [
-                { case: { $eq: ["$reportFalse", 0] }, then: "처리 전" },
-                { case: { $eq: ["$reportFalse", 1] }, then: "허위 신고" },
-                { case: { $eq: ["$reportFalse", 2] }, then: "처리 완료" },
-              ],
-              default: "중복 신고",
-            },
-          }, // 신고 허위 여부 포함
+          reportFalse: 1, // 신고 허위 여부 포함
           reportDate: {
             $dateToString: {
               format: "%Y%m%d", // 날짜 형식을 YYYYMMDD로 지정
               date: "$reportDate", // Report 문서의 reportDate 필드 값
             },
           }, // 신고 날짜 포함 (YYYYMMDD 형식으로 변환)
+          reportReason: 1, // 신고 이유 포함
         },
       },
     ]).exec();
   } catch (error) {
-    console.log(error); // 에러가 발생하면 콘솔에 출력
+    console.error("Error fetching reports:", error); // 에러가 발생하면 콘솔에 출력
+    throw error; // 에러를 던져서 상위 레벨에서 처리할 수 있도록 함
   }
 };
 

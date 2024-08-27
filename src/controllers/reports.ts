@@ -66,7 +66,7 @@ export const updateReports = async (
       // 에러 응답을 반환합니다. 상태 코드 400 (Bad Request).
       return res.status(400).json({ code: 2, msg: "에러" });
     } else {
-      // 신고 상태가 2(신고 처리)인 경우에만 다음 작업을 수행합니다.
+      // 신고 상태가 1(신고 처리)인 경우에만 다음 작업을 수행합니다.
       if (reportFalse === 1) {
         // reportId를 사용하여 현재 신고 정보를 가져옵니다.
         const report = await getReportByReportId(reportId);
@@ -116,6 +116,7 @@ export const updateReports = async (
         const futureDate = new Date();
         let date;
         let role;
+
         // 신고 개수가 3일 경우, 역할을 'ROLE_A'로 설정하고 종료일자를 7일 후로 설정합니다.
         if (reportCount === 3) {
           date = new Date(futureDate.setDate(futureDate.getDate() + 7));
