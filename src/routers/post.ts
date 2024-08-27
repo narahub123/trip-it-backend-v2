@@ -22,5 +22,5 @@ export default (router: express.Router) => {
   router.delete("/community/communityDetail/delete/:postId", deletePost);
   router.post("/community/communityDetail/completedPost/:postId");
   router.post("/block/add", addBlock); // 나중에 삭제
-  router.post("/test/report/add", addReport); // 신고 추가
+  router.post("/report/add", addReport); // 신고 추가
 };

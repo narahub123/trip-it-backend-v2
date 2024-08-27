@@ -127,31 +127,40 @@ export const getReports = (
     return Report.aggregate([
       {
         $lookup: {
-          from: "users", // 참조할 컬렉션 이름 (users 컬렉션)
-          localField: "userId", // Report 컬렉션의 필드 (userId)
-          foreignField: "userId", // users 컬렉션의 필드 (userId)
-          as: "currentUser", // 결과가 저장될 필드 이름
+          from: "users",
+          localField: "userId",
+          foreignField: "userId",
+          as: "currentUser",
         },
       },
-
-      // 신고된 모집글의 정보를 불러오기 위한 단계
       {
         $lookup: {
-          from: "posts", // 참조할 컬렉션 이름 (posts 컬렉션)
-          localField: "postId", // Report 컬렉션의 필드 (postId)
-          foreignField: "postId", // posts 컬렉션의 필드 (postId)
-          as: "reportedPost", // 결과가 저장될 필드 이름
+          from: "posts",
+          localField: "postId",
+          foreignField: "postId",
+          as: "reportedPost",
         },
       },
+      {
+        $unwind: "$reportedPost", // 배열 평탄화
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "reportedPost.userId",
+          foreignField: "userId",
+          as: "blockedUser",
+        },
+      },
+      {
+        $unwind: "$blockedUser", // 배열 평탄화
+      },
 
-      // 필드를 추가하거나 수정하기 위한 단계
-      // 필드를 추가하거나 수정하기 위한 단계
       {
         $addFields: {
-          // 현재 유저의 정보 추가
           currentUser: { $arrayElemAt: ["$currentUser", 0] },
-          // 신고된 모집글의 정보 추가
-          reportedPost: { $arrayElemAt: ["$reportedPost", 0] },
+          // reportedPost: { $arrayElemAt: ["$reportedPost", 0] },
+          // blockedUser: { $arrayElemAt: ["$blockedUser", 0] },
         },
       },
 
@@ -159,10 +168,12 @@ export const getReports = (
       {
         $project: {
           reportId: 1, // 신고 아이디 포함
-          userId: "$currentUser._id", // 현재 유저의 ID 포함
-          nickname: "$currentUser.nickname", // 닉네임 포함
+          blockUserId: "$currentUser._id", // 현재 유저의 ID 포함
+          blockUserNickname: "$currentUser.nickname", // 닉네임 포함
           postId: "$reportedPost._id", // 신고된 모집글의 ID 포함
           postTitle: "$reportedPost.postTitle", // 모집글 이름 포함
+          blockedUserId: "$blockedUser.userId",
+          blockedUserNickname: "$blockedUser.nickname",
           reportType: 1, // 신고 유형 포함
           reportDetail: 1, // 신고 상세 포함
           reportFalse: 1, // 신고 허위 여부 포함
