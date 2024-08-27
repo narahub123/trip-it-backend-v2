@@ -43,6 +43,7 @@ export const createReport = async (
   }
 };
 
+// 마이 페이지 신고 목록
 export const getReportByUserId = (userId: Types.ObjectId) => {
   try {
     return Report.aggregate([
@@ -144,18 +145,13 @@ export const getReports = (
       },
 
       // 필드를 추가하거나 수정하기 위한 단계
+      // 필드를 추가하거나 수정하기 위한 단계
       {
         $addFields: {
           // 현재 유저의 정보 추가
-          userId: {
-            userId: { $arrayElemAt: ["$currentUser.userId", 0] }, // 현재 유저의 userId (배열의 첫 번째 요소)
-            nickname: { $arrayElemAt: ["$currentUser.nickname", 0] }, // 현재 유저의 닉네임 (배열의 첫 번째 요소)
-          },
+          currentUser: { $arrayElemAt: ["$currentUser", 0] },
           // 신고된 모집글의 정보 추가
-          postId: {
-            postId: { $arrayElemAt: ["$reportedPost.postId", 0] }, // 신고된 모집글의 postId (배열의 첫 번째 요소)
-            postTitle: { $arrayElemAt: ["$reportedPost.postTitle", 0] }, // 신고된 모집글의 제목 (배열의 첫 번째 요소)
-          },
+          reportedPost: { $arrayElemAt: ["$reportedPost", 0] },
         },
       },
 
@@ -163,10 +159,10 @@ export const getReports = (
       {
         $project: {
           reportId: 1, // 신고 아이디 포함
-          userId: 1, // 현재 유저의 정보 (userId 객체) 포함
-          nickname: 1,
-          postId: 1, // 신고된 모집글의 정보 (postId 객체) 포함
-          postTitle: 1,
+          userId: "$currentUser._id", // 현재 유저의 ID 포함
+          nickname: "$currentUser.nickname", // 닉네임 포함
+          postId: "$reportedPost._id", // 신고된 모집글의 ID 포함
+          postTitle: "$reportedPost.postTitle", // 모집글 이름 포함
           reportType: 1, // 신고 유형 포함
           reportDetail: 1, // 신고 상세 포함
           reportFalse: 1, // 신고 허위 여부 포함
