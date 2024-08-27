@@ -58,21 +58,19 @@ export const getBlocks = (
       {
         $addFields: {
           // 현재 유저의 정보 추가
-          userId: {
-            userId: { $arrayElemAt: ["$currentUser.userId", 0] }, // 현재 유저의 userId (배열의 첫 번째 요소)
-            nickname: { $arrayElemAt: ["$currentUser.nickname", 0] }, // 현재 유저의 닉네임 (배열의 첫 번째 요소)
-          },
-          nickname: { $arrayElemAt: ["$blockedUser.nickname", 0] }, // 차단 당한 유저의 닉네임 (배열의 첫 번째 요소)
+          blockUser: { $arrayElemAt: ["$currentUser", 0] },
+          blockedUser: { $arrayElemAt: ["$blockedUser", 0] }, // 차단 당한 유저의 닉네임 (배열의 첫 번째 요소)
         },
       },
 
       // 필요한 필드만 선택하여 결과를 반환하기 위한 단계
       {
         $project: {
-          blockId: 1, // Block 문서의 blockId 필드
-          userId: 1, // 추가된 현재 유저의 정보 (userId 객체)
-          blockedId: 1, // Block 문서의 blockedId 필드
-          nickname: 1, // 추가된 차단 당한 유저의 닉네임
+          blockId: 1, // Block 문서의 blockId 필드 포함 (1은 포함을 의미)
+          blockUserId: "$blockUser.userId", // 현재 유저의 정보 (userId 객체) 포함
+          blockUserNickname: "$blockUser.nickname",
+          blockedUserId: "$blockedUser.userId", // Block 문서의 blockedId 필드 포함
+          blockedUserNickname: "$blockedUser.nickname", // 차단 당한 유저의 닉네임 포함
           blockDate: {
             $dateToString: {
               format: "%Y%m%d", // 날짜 형식을 YYYYMMDD로 지정
@@ -163,11 +161,8 @@ export const getBlockByUserId = (userId: Types.ObjectId) => {
       {
         $addFields: {
           // 현재 유저의 정보 추가
-          userId: {
-            userId: { $arrayElemAt: ["$currentUser.userId", 0] }, // 현재 유저의 userId (배열의 첫 번째 요소)
-            nickname: { $arrayElemAt: ["$currentUser.nickname", 0] }, // 현재 유저의 닉네임 (배열의 첫 번째 요소)
-          },
-          nickname: { $arrayElemAt: ["$blockedUser.nickname", 0] }, // 차단 당한 유저의 닉네임 (배열의 첫 번째 요소)
+          blockUser: { $arrayElemAt: ["$currentUser", 0] },
+          blockedUser: { $arrayElemAt: ["$blockedUser", 0] }, // 차단 당한 유저의 닉네임 (배열의 첫 번째 요소)
         },
       },
 
@@ -182,9 +177,10 @@ export const getBlockByUserId = (userId: Types.ObjectId) => {
       {
         $project: {
           blockId: 1, // Block 문서의 blockId 필드 포함 (1은 포함을 의미)
-          userId: 1, // 현재 유저의 정보 (userId 객체) 포함
-          blockedId: 1, // Block 문서의 blockedId 필드 포함
-          nickname: 1, // 차단 당한 유저의 닉네임 포함
+          blockUserId: "$blockUser.userId", // 현재 유저의 정보 (userId 객체) 포함
+          blockUserNickname: "$blockUser.nickname",
+          blockedUserId: "$blockedUser.userId", // Block 문서의 blockedId 필드 포함
+          blockedUserNickname: "$blockedUser.nickname", // 차단 당한 유저의 닉네임 포함
           blockDate: {
             $dateToString: {
               format: "%Y%m%d", // 날짜 형식을 YYYYMMDD로 지정
