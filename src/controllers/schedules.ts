@@ -289,8 +289,6 @@ export const deleteSchedulesM = async (
 ) => {
   const { userId } = req.user;
   const { scheduleIds } = req.body;
-  console.log(scheduleIds);
-  console.log(userId);
 
   try {
     // 본인 글 확인

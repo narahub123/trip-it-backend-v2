@@ -67,9 +67,9 @@ export const getBlocks = (
       {
         $project: {
           blockId: 1, // Block 문서의 blockId 필드 포함 (1은 포함을 의미)
-          blockUserId: "$blockUser.userId", // 현재 유저의 정보 (userId 객체) 포함
+          userId: "$blockUser.userId", // 현재 유저의 정보 (userId 객체) 포함
           blockUserNickname: "$blockUser.nickname",
-          blockedUserId: "$blockedUser.userId", // Block 문서의 blockedId 필드 포함
+          blockedId: "$blockedUser.userId", // Block 문서의 blockedId 필드 포함
           blockedUserNickname: "$blockedUser.nickname", // 차단 당한 유저의 닉네임 포함
           blockDate: {
             $dateToString: {
