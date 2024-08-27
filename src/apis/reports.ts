@@ -164,34 +164,19 @@ export const getReports = (
         $project: {
           reportId: 1, // 신고 아이디 포함
           userId: 1, // 현재 유저의 정보 (userId 객체) 포함
+          nickname: 1,
           postId: 1, // 신고된 모집글의 정보 (postId 객체) 포함
-          reportType: {
-            $switch: {
-              branches: [
-                { case: { $eq: ["$reportType", "R1"] }, then: "음란" },
-                { case: { $eq: ["$reportType", "R2"] }, then: "폭력" },
-                { case: { $eq: ["$reportType", "R3"] }, then: "욕설" },
-              ],
-              default: "기타",
-            },
-          }, // 신고 유형 포함
+          postTitle: 1,
+          reportType: 1, // 신고 유형 포함
           reportDetail: 1, // 신고 상세 포함
-          reportFalse: {
-            $switch: {
-              branches: [
-                { case: { $eq: ["$reportFalse", 0] }, then: "처리 전" },
-                { case: { $eq: ["$reportFalse", 1] }, then: "허위 신고" },
-                { case: { $eq: ["$reportFalse", 2] }, then: "처리 완료" },
-              ],
-              default: "중복 신고",
-            },
-          }, // 신고 허위 여부 포함
+          reportFalse: 1, // 신고 허위 여부 포함
           reportDate: {
             $dateToString: {
               format: "%Y%m%d", // 날짜 형식을 YYYYMMDD로 지정
               date: "$reportDate", // Report 문서의 reportDate 필드 값
             },
           }, // 신고 날짜 포함 (YYYYMMDD 형식으로 변환)
+          reportReason: 1,
         },
       },
 
