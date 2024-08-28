@@ -276,3 +276,28 @@ export const updateUserRole = async (
     return res.status(500).json({ code: 3, msg: "내부에러" });
   }
 };
+
+export const leaveUser = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  const { userId } = req.user;
+  try {
+    const user = await getUserByUserId(userId);
+
+    if (userId.toString() !== user.userId.toString()) {
+      return res.status(403).json({ code: 1, msg: "권한 없음" });
+    }
+
+    const leftDate = new Date();
+    const leftUser = await patchUserRole(userId, "ROLE_D", leftDate);
+
+    if (!leftUser) {
+      return res.status(401).json({ code: 2, msg: "탈퇴 실패" });
+    }
+
+    return res.status(200).json({ code: "ok", msg: "탈퇴 성공" });
+  } catch (error) {
+    return res.status(500).json({ code: 3, msg: "내부에러" });
+  }
+};

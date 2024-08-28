@@ -13,7 +13,7 @@ export const verifyToken = async (
     "/community/communityList",
     "/community/communityListByView",
     "/community/communitySearch",
-    "/community/communityDetailGuest",
+    /^\/community\/communityDetailGuest\/[^/]+\/[^/]+$/,
   ];
 
   const pathsToInclude = [

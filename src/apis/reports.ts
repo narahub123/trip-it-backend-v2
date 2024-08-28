@@ -10,7 +10,7 @@ export const createReport = async (
 ) => {
   try {
     const reportId = new mongoose.Types.ObjectId();
-    const postid = new mongoose.Types.ObjectId();
+    const postid = new mongoose.Types.ObjectId(postId);
 
     let reportReason;
 
@@ -44,78 +44,92 @@ export const createReport = async (
 };
 
 // 마이 페이지 신고 목록
-export const getReportByUserId = (userId: Types.ObjectId) => {
+export const getReportsByUserId = async (userId: Types.ObjectId) => {
   try {
-    return Report.aggregate([
-      // 특정 userId와 일치하는 문서를 찾기 위한 단계
-      { $match: { userId: userId } },
-
-      // 현재 유저(신고한 유저)의 정보를 불러오기 위한 단계
+    const results = await Report.aggregate([
       {
-        $lookup: {
-          from: "users", // 참조할 컬렉션 이름 (users 컬렉션)
-          localField: "userId", // Report 컬렉션의 필드 (userId)
-          foreignField: "_id", // users 컬렉션의 _id 필드와 매칭
-          as: "currentUser", // 결과가 저장될 필드 이름
+        $match: {
+          userId: new mongoose.Types.ObjectId(userId),
         },
       },
-
-      // 신고된 모집글의 정보를 불러오기 위한 단계
       {
         $lookup: {
-          from: "posts", // 참조할 컬렉션 이름 (posts 컬렉션)
-          localField: "postId", // Report 컬렉션의 필드 (postId)
-          foreignField: "_id", // posts 컬렉션의 _id 필드와 매칭
-          as: "reportedPost", // 결과가 저장될 필드 이름
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "currentUser",
         },
       },
-
-      // 필드를 추가하거나 수정하기 위한 단계
+      {
+        $lookup: {
+          from: "posts",
+          localField: "postId",
+          foreignField: "_id",
+          as: "reportedPost",
+        },
+      },
+      {
+        $unwind: {
+          path: "$reportedPost",
+          preserveNullAndEmptyArrays: true, // reportedPost가 없을 때도 진행
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "reportedPost.userId",
+          foreignField: "_id",
+          as: "blockedUser",
+        },
+      },
+      {
+        $unwind: {
+          path: "$blockedUser",
+          preserveNullAndEmptyArrays: true, // blockedUser가 없을 때도 진행
+        },
+      },
       {
         $addFields: {
-          // 현재 유저의 정보 추가
           currentUser: { $arrayElemAt: ["$currentUser", 0] },
-          // 신고된 모집글의 정보 추가
-          reportedPost: { $arrayElemAt: ["$reportedPost", 0] },
+          // reportedPost: { $arrayElemAt: ["$reportedPost", 0] },
+          // blockedUser: { $arrayElemAt: ["$blockedUser", 0] },
         },
       },
-
-      // 신고한 날짜를 기준으로 내림차순 정렬하기 위한 단계
-      {
-        $sort: {
-          reportDate: -1, // reportDate를 기준으로 내림차순 정렬 (-1)
-        },
-      },
-
-      // 필요한 필드만 선택하여 결과를 반환하기 위한 단계
       {
         $project: {
-          reportId: 1, // 신고 아이디 포함
-          userId: "$currentUser._id", // 현재 유저의 ID 포함
-          nickname: "$currentUser.nickname", // 닉네임 포함
-          postId: "$reportedPost._id", // 신고된 모집글의 ID 포함
-          postTitle: "$reportedPost.postTitle", // 모집글 이름 포함
-          reportType: 1, // 신고 유형
-          reportDetail: 1, // 신고 상세 포함
-          reportFalse: 1, // 신고 허위 여부 포함
+          reportId: 1,
+          blockUserId: "$currentUser._id",
+          blockUserNickname: "$currentUser.nickname",
+          postId: "$reportedPost._id",
+          postTitle: "$reportedPost.postTitle",
+          blockedUserId: "$blockedUser._id",
+          blockedUserNickname: "$blockedUser.nickname",
+          reportType: 1,
+          reportDetail: 1,
+          reportFalse: 1,
           reportDate: {
             $dateToString: {
-              format: "%Y%m%d", // 날짜 형식을 YYYYMMDD로 지정
-              date: "$reportDate", // Report 문서의 reportDate 필드 값
+              format: "%Y%m%d",
+              date: "$reportDate",
             },
-          }, // 신고 날짜 포함 (YYYYMMDD 형식으로 변환)
-          reportReason: 1, // 신고 이유 포함
+          },
+          reportReason: 1,
         },
       },
     ]).exec();
+
+    return results;
   } catch (error) {
-    console.error("Error fetching reports:", error); // 에러가 발생하면 콘솔에 출력
-    throw error; // 에러를 던져서 상위 레벨에서 처리할 수 있도록 함
+    console.error("Error fetching reports:", error);
+    // 에러 메시지와 함께 사용자에게 적절한 응답을 반환할 수 있도록 추가 개선
+    throw new Error(
+      "신고 정보를 불러오는 중 문제가 발생했습니다. 다시 시도해 주세요."
+    );
   }
 };
 
 // 관리자 페이지 신고한 목록 가져오기
-export const getReports = (
+export const getReports = async (
   sortKey: string,
   sortValue: string,
   skip: number,
@@ -124,7 +138,7 @@ export const getReports = (
   search: string
 ) => {
   try {
-    return Report.aggregate([
+    const results = await Report.aggregate([
       {
         $lookup: {
           from: "users",
@@ -142,7 +156,10 @@ export const getReports = (
         },
       },
       {
-        $unwind: "$reportedPost", // 배열 평탄화
+        $unwind: {
+          path: "$reportedPost",
+          preserveNullAndEmptyArrays: true, // reportedPost가 없을 때도 진행
+        },
       },
       {
         $lookup: {
@@ -153,40 +170,37 @@ export const getReports = (
         },
       },
       {
-        $unwind: "$blockedUser", // 배열 평탄화
+        $unwind: {
+          path: "$blockedUser",
+          preserveNullAndEmptyArrays: true, // blockedUser가 없을 때도 진행
+        },
       },
-
       {
         $addFields: {
           currentUser: { $arrayElemAt: ["$currentUser", 0] },
-          // reportedPost: { $arrayElemAt: ["$reportedPost", 0] },
-          // blockedUser: { $arrayElemAt: ["$blockedUser", 0] },
         },
       },
-
-      // 필요한 필드만 선택하여 결과를 반환하기 위한 단계
       {
         $project: {
-          reportId: 1, // 신고 아이디 포함
-          blockUserId: "$currentUser._id", // 현재 유저의 ID 포함
-          blockUserNickname: "$currentUser.nickname", // 닉네임 포함
-          postId: "$reportedPost._id", // 신고된 모집글의 ID 포함
-          postTitle: "$reportedPost.postTitle", // 모집글 이름 포함
+          reportId: 1,
+          blockUserId: "$currentUser._id",
+          blockUserNickname: "$currentUser.nickname",
+          postId: "$reportedPost._id",
+          postTitle: "$reportedPost.postTitle",
           blockedUserId: "$blockedUser.userId",
           blockedUserNickname: "$blockedUser.nickname",
-          reportType: 1, // 신고 유형 포함
-          reportDetail: 1, // 신고 상세 포함
-          reportFalse: 1, // 신고 허위 여부 포함
+          reportType: 1,
+          reportDetail: 1,
+          reportFalse: 1,
           reportDate: {
             $dateToString: {
-              format: "%Y%m%d", // 날짜 형식을 YYYYMMDD로 지정
-              date: "$reportDate", // Report 문서의 reportDate 필드 값
+              format: "%Y%m%d",
+              date: "$reportDate",
             },
-          }, // 신고 날짜 포함 (YYYYMMDD 형식으로 변환)
+          },
           reportReason: 1,
         },
       },
-
       {
         $match: {
           [field]: { $regex: search, $options: "i" },
@@ -195,34 +209,34 @@ export const getReports = (
       {
         $facet: {
           content: [
-            // sortKey와 sortValue를 사용하여 동적으로 정렬하기 위한 단계
             {
               $sort: {
-                [sortKey]: sortValue === "desc" ? -1 : 1, // sortValue가 "desc"이면 내림차순(-1), 그렇지 않으면 오름차순(1)으로 정렬
+                [sortKey]: sortValue === "desc" ? -1 : 1,
               },
             },
             {
-              $skip: skip, // 페이징을 위해 결과를 skip만큼 건너뜀
+              $skip: skip,
             },
             {
-              $limit: limit, // 페이징을 위해 결과를 limit만큼 제한함
+              $limit: limit,
             },
           ],
-          totalElements: [{ $count: "count" }], // 전체 요소 수를 세어 totalElements 필드에 "count"라는 이름으로 저장
+          totalElements: [{ $count: "count" }],
         },
       },
-
-      // totalElements 배열을 평평하게 만들기 위한 단계
       {
         $addFields: {
           totalElements: {
-            $ifNull: [{ $arrayElemAt: ["$totalElements.count", 0] }, 0], // // totalElements가 없는 경우 기본값 0 추가
+            $ifNull: [{ $arrayElemAt: ["$totalElements.count", 0] }, 0],
           },
         },
       },
     ]).exec();
+
+    return results; // 결과를 반환
   } catch (error) {
-    console.log(error); // 에러가 발생하면 콘솔에 출력
+    console.log(error);
+    throw error; // 에러를 호출한 곳에 전달
   }
 };
 

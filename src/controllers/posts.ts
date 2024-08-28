@@ -279,9 +279,7 @@ export const fetchPost = async (
   req: express.Request,
   res: express.Response
 ) => {
-  console.log(req.user);
-
-  const currentUser = req.user.userId;
+  const currentUser = req.query.userId;
 
   const userId = new mongoose.Types.ObjectId(req.params.userId);
 

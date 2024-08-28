@@ -7,8 +7,8 @@ import {
   createReport,
   deleteReport,
   getReportByReportId,
-  getReportByUserId,
   getReports,
+  getReportsByUserId,
   updateReportsByReportFalse,
 } from "../apis/reports";
 import express from "express";
@@ -202,9 +202,7 @@ export const fetchReport = async (
   const { userId } = req.user;
 
   try {
-    const report = await getReportByUserId(userId);
-
-    console.log(report);
+    const report = await getReportsByUserId(userId);
 
     if (!report) {
       // 업데이트된 신고가 없는 경우
