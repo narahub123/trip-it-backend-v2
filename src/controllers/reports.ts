@@ -238,6 +238,13 @@ export const addReport = async (
     // post를 정보를 통해서 유저 아이디 가져오기
     const blockedId = post.userId;
 
+    // 자기 자신을 신고하는 것 차단하기
+    if (userId.toString() === blockedId.toString()) {
+      return res
+        .status(400)
+        .json({ code: 4, msg: "자기 자신을 신고할 수 없습니다." });
+    }
+
     // 차단하기
     const block = await createBlock(userId, blockedId);
     if (!block) {

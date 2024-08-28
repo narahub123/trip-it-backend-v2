@@ -253,14 +253,22 @@ export const updateUserRole = async (
 
   const { userId, newRole } = req.body;
 
+  let endDate = null;
+  const futureDate = new Date();
+  if (newRole === "ROLE_A") {
+    endDate = new Date(futureDate.setDate(futureDate.getDate() + 7));
+  } else if (newRole === "ROLE_B") {
+    endDate = new Date(futureDate.setDate(futureDate.getDate() + 30));
+  } else if (newRole === "ROLE_C") {
+    endDate = new Date(futureDate.setDate(futureDate.getDate() + 999999));
+  }
+
   try {
-    const response = await patchUserRole(userId, newRole);
+    const response = await patchUserRole(userId, newRole, endDate);
 
     if (!response) {
       return res.status(401).json({ code: 2, msg: "업데이트 실패" });
     }
-
-    console.log(response);
 
     return res.status(200).json(response);
   } catch (error) {

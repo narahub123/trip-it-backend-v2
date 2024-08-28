@@ -109,6 +109,13 @@ export const unBlockUser = async (
       return res.status(403).json({ code: 1, msg: "요청권한 없음" });
     }
 
+    // 자기 자신을 차단하는 것 차단
+    if (userId === blockId) {
+      return res
+        .status(400)
+        .json({ code: 4, msg: "자기 자신을 차단할 수 없습니다." });
+    }
+
     // 차단 해제 작업 수행
     const response = await deleteBlock(blockId);
 

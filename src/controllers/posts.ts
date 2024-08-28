@@ -258,8 +258,8 @@ export const fetchPostsByGuest = async (
   const metroId = req.query.metroId ? req.query.metroId.toString() : "";
   const search = req.query.query ? req.query.query.toString() : "";
   const limit = req.query.size ? Number(req.query.size) : 12; // 한 페이지에 표시할 항목 수
-  const page = Number(req.query.page) || 1; // 현재 페이지 (기본값은 1)
-  const skip = (page - 1) * limit; // 페이지네이션을 위한 스킵 수
+  const page = Number(req.query.page) || 0; // 현재 페이지 (기본값은 1)
+  const skip = page * limit; // 페이지네이션을 위한 스킵 수
   const sortKey =
     path.split("/")[2] === "communityList" ? "postDate" : "viewCount";
 
