@@ -21,7 +21,7 @@ export default (router: express.Router) => {
   router.get("/admin/users", fetchUsers); // 유저 목록
   router.get("/admin/userDetail/:userId", fetchUser); // 유저 목록
   router.post("/admin/changeUserRole", updateUserRole); // 등급 변경
-  router.get("/admin/posts", fetchPostsAdmin); // 유저 목록
+  router.get("/admin/postList", fetchPostsAdmin); // 유저 목록
   router.post("/admin/postList/delete-post", deletePostsA); // 모집글 삭제(body는 배열로)
   router.get("/admin/schedules", fetchSchedulesAdmin); // 일정 목록
   router.post("/admin/schedules/delete-schedules", deleteSchedulesA); // 일정 삭제(body는 배열로)

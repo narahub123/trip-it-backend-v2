@@ -246,25 +246,24 @@ export const updateUserRole = async (
   req: express.Request,
   res: express.Response
 ) => {
-  const { role } = req.user;
-  if (role !== "ROLE_ADMIN") {
+  if (req.user.role !== "ROLE_ADMIN") {
     return res.status(403).json({ code: 1, msg: "권한 없음" });
   }
 
-  const { userId, newRole } = req.body;
+  const { userId, role } = req.body;
 
   let endDate = null;
   const futureDate = new Date();
-  if (newRole === "ROLE_A") {
+  if (role === "ROLE_A") {
     endDate = new Date(futureDate.setDate(futureDate.getDate() + 7));
-  } else if (newRole === "ROLE_B") {
+  } else if (role === "ROLE_B") {
     endDate = new Date(futureDate.setDate(futureDate.getDate() + 30));
-  } else if (newRole === "ROLE_C") {
+  } else if (role === "ROLE_C") {
     endDate = new Date(futureDate.setDate(futureDate.getDate() + 999999));
   }
 
   try {
-    const response = await patchUserRole(userId, newRole, endDate);
+    const response = await patchUserRole(userId, role, endDate);
 
     if (!response) {
       return res.status(401).json({ code: 2, msg: "업데이트 실패" });
