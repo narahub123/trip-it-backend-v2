@@ -21,6 +21,8 @@ export const getPlacesByContentTypeId = async (
 
     return res.data.response.body.items.item;
   } catch (error) {
+    console.log("여기");
+    
     throw error;
   }
 };
@@ -66,6 +68,7 @@ export const getPlacesByKeyword = async (
 
     return res.data.response.body.items.item;
   } catch (error) {
+    console.log("여기");
     throw error;
   }
 };

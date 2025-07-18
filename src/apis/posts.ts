@@ -317,7 +317,7 @@ export const getPostsByGuest = (
           scheduleId: { $arrayElemAt: ["$userSchedule.scheduleId", 0] }, // 스케줄 ID
           startDate: { $arrayElemAt: ["$userSchedule.startDate", 0] }, // 스케줄 시작 날짜
           endDate: { $arrayElemAt: ["$userSchedule.endDate", 0] }, // 스케줄 종료 날짜
-          metroName: { $arrayElemAt: ["$userSchedule.metroName", 0] }, // 메트로 이름
+          metroId: { $arrayElemAt: ["$userSchedule.metroId", 0] },
         },
       },
 
@@ -328,7 +328,8 @@ export const getPostsByGuest = (
           scheduleId: 1, // 포함할 필드
           startDate: 1, // 포함할 필드
           endDate: 1, // 포함할 필드
-          metroName: 1, // 포함할 필드
+          metroId: 1,
+          metroName: metros.find((metro) => metro.areaCode === metroId)?.name, // 포함할 필드
           userId: 1, // 포함할 필드
           nickname: 1, // 포함할 필드
           gender: 1, // 포함할 필드
