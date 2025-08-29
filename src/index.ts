@@ -27,7 +27,7 @@ app.use(
   cors({
     // 허용할 출처(origin) 설정
     origin: [
-      "https://tripitproject.netlify.app",
+      "https://tripitnow.netlify.app",
       `http://${ip}:3000`,
       `http://${ip}:3001`,
       `http://localhost:3000`,
