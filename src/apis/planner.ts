@@ -14,7 +14,7 @@ export const getPlacesByContentTypeId = async (
 
   console.log("장소들 요청", areaCode, contentTypeId);
 
-  const apiUrl = `http://apis.data.go.kr/B551011/KorService2/areaBasedList1?serviceKey=${apiKey}&pageNo=${pageNo}&numOfRows=${numOfRows}&MobileApp=AppTest&MobileOS=ETC&arrange=A&areaCode=${areaCode}&contentTypeId=${contentTypeId}&_type=JSON`;
+  const apiUrl = `http://apis.data.go.kr/B551011/KorService2/areaBasedList1?serviceKey=${apiKey}&pageNo=${pageNo}&numOfRows=${numOfRows}&MobileApp=AppTest&MobileOS=ETC&arrange=A&areaCode=${areaCode}&contentTypeId=${contentTypeId}&_type=json`;
 
   try {
     const res = await axios.get(apiUrl);
